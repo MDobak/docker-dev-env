@@ -1,0 +1,4 @@
+#!/bin/bash
+
+NAME="example-mysql"
+ARGS="-tdi -P -p 3306:3306 -v $MOUNT_DIR/mysql:/var/lib/mysql -v $MOUNT_DIR/mysql-conf:/etc/mysql/conf.d -e MYSQL_ROOT_PASSWORD=test123"

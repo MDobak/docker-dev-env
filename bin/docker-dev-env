@@ -1,0 +1,140 @@
+#!/bin/bash
+#
+# The MIT License (MIT)
+# Copyright © 2016 Michał Dobaczewski <mdobak@gmail.com>
+#
+
+BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+IMAGES_TO_RUN=""
+
+. $BASE_DIR/../src/util.sh
+. $BASE_DIR/../src/vbox.sh
+. $BASE_DIR/../src/dnsmasq.sh
+. $BASE_DIR/../src/hosts.sh
+. $BASE_DIR/../src/docker.sh
+. $BASE_DIR/../src/config.sh
+
+# Prints Docker ASCII logo.
+show_banner ()
+{
+  printf '                                           \n'
+  printf '                    ##        .            \n'
+  printf '              ## ## ##       ==            \n'
+  printf '           ## ## ## ##      ===            \n'
+  printf '       /""""""""""""""""\\___/ ===         \n'
+  printf '  ~~~ {~~ ~~~~ ~~~ ~~~~ ~~ ~ /  ===- ~~~   \n'
+  printf '       \\______ o          __/             \n'
+  printf '         \\    \\        __/               \n'
+  printf '          \\____\\______/                  \n'
+  printf '                                           \n'
+}
+
+# Parses arguments passed to this script. Should be invoked with $@ as argument.
+# Image's names to build are stored in IMAGES_TO_RUN.
+parse_args ()
+{
+  while [[ $# > 0 ]]; do
+    ARG="$1"
+
+    if [[ $ARG == "-v" ]]; then
+      VERBOSE=1
+    elif [[ $ARG == "--skip-setup-vbox-net" ]]; then
+      SETUP_VBOX_NETWORK=$false
+    elif [[ $ARG == "--skip-setup-vbox-nfs-sharing" ]]; then
+      SETUP_VBOX_NFS_SHARING=$false
+    elif [[ $ARG == "--skip-setup-containers-host" ]]; then
+      SETUP_CONTAINERS_HOSTS=$false
+    elif [[ $ARG == "--skip-setup-containers-dnsmasq" ]]; then
+      SETUP_CONTAINERS_DNSMASQ=$false
+    elif [[ $ARG == "--skip-setup-host-dnsmasq" ]]; then
+      SETUP_HOST_DNSMASQ=$false
+    elif [[ $ARG == "--mount-dir" ]]; then
+      shift
+      MOUNT_DIR=$1
+    else
+      IMAGES_TO_RUN="$IMAGES_TO_RUN $ARG"
+    fi
+
+    shift
+  done
+}
+
+# Takes one argument, a variable name and stores in it path where Docker volumes
+# will be mounted.
+#
+# $1 - Variable name.
+setup_mount_dir ()
+{
+  local _MOUNT_DIR=""
+
+  if is_mac; then
+    _MOUNT_DIR=$MACOS_MOUNT_DIR
+  elif is_linux; then
+    _MOUNT_DIR=$LINUX_MOUNT_DIR
+  fi
+
+  mkdir -p $_MOUNT_DIR
+  eval "$1=$_MOUNT_DIR"
+
+  echo_step_info "Docker volumes will be mounted into $_MOUNT_DIR"
+}
+
+# Runs image.sh scripts stored in image directory which builds or starts
+# Docker images. Images to build are defined in IMAGES_TO_RUN variable.
+build_images ()
+{
+  local MOUNT_DIR=$1
+  shift 1
+
+  for IMAGE in $IMAGES_TO_RUN; do
+    if [[ $IMAGE == @* ]]; then
+      DIR=$BASE_DIR/../images/${IMAGE:1}
+    else
+      DIR=$IMAGE
+    fi
+
+    if ! [[ -f $DIR/DevEnvConf ]]; then
+      echo_fatal "Configuration file $DIR/DevEnvConf do not exists!"
+    fi
+
+    . $DIR/DevEnvConf
+    setup_dev_container "$NAME" "$DIR" -h="$NAME" $ARGS
+  done
+}
+
+show_banner
+sudo_prompt
+check_os_support
+check_requirements
+setup_mount_dir MOUNT_DIR
+parse_args $@
+
+if [[ $SETUP_VBOX_NETWORK == $true ]]; then
+  setup_vbox_network
+  setup_vbox_gw
+fi
+
+if [[ $SETUP_VBOX_NFS_SHARING == $true ]]; then
+  setup_vbox_nfs
+fi
+
+start_docker_machine
+build_images $MOUNT_DIR $@
+
+if [[ $SETUP_HOST_DNSMASQ == $true ]]; then
+  setup_host_dnsmasq
+fi
+
+if [[ $SETUP_CONTAINERS_DNSMASQ == $true ]]; then
+  setup_containers_dnsmasq
+fi
+
+if [[ $SETUP_CONTAINERS_HOSTS == $true ]]; then
+  setup_containers_host_files
+fi
+
+docker_remove_untagged_images
+
+echo
+echo_success "    All done!"
+echo
