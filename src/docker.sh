@@ -12,36 +12,36 @@ if ! type _UTILS_SH &> /dev/null; then
   . $UTILS_BASE_DIR/util.sh
 fi
 
-# Removes images and containers created by this script and rebuilds image.
+# Removes images and containers created by this script and rebuilds images.
 #
-# $1 - Image name.
-# $2 - Dockerfile directory.
+# $1 - An image name.
+# $2 - A Dockerfile directory.
 docker_dev_container_rebuild ()
 {
   local NAME=$1;
   local DIR=$2;
 
   if docker ps | grep -q "\s$NAME$"; then
-    echo_step "Removing $NAME container"
-    # We intentionaly finds containers based on name rather than image name
-    # beacuse we want remove only containers created by this script.
+    echo_step "Removing a $NAME container"
+    # We intentionaly finds containers based on thier name rather than an image
+    # name beacuse we want remove only containers created by this script.
     exec_step docker rm -f $(docker ps | grep "^[^\s]+\s+$NAME\s+" | awk '{print $1}')
   fi
 
   if docker images | grep -q "^$NAME\s"; then
-    echo_step "Removing $NAME image"
+    echo_step "Removing a $NAME image"
     exec_step docker rmi -f $NAME
   fi
 
-  echo_step "Bulding $NAME image"
+  echo_step "Bulding a $NAME image"
   exec_step docker build -t $NAME $DIR
 }
 
-# Builds image if not exists and then create new container or starts existing.
-# Containers will have the same name as image.
+# Builds an image if not exists and then create a new container or starts
+# existing one. Containers will have the same name as an image.
 #
-# $1 - Image name.
-# $2 - Dockerfile directory.
+# $1 - An image name.
+# $2 - A Dockerfile directory.
 setup_dev_container ()
 {
   local NAME=$1
@@ -66,14 +66,14 @@ setup_dev_container ()
   if [[ $BUILD == $true ]]; then
     local CURRENT_ID=$(docker ps -a | grep "\s$NAME$" | awk '{print $1}')
     if [[ -z $CURRENT_ID ]]; then
-      echo_step "Running fresh $NAME container"
+      echo_step "Running a fresh $NAME container"
       exec_step docker run $ARGS --name="$NAME" $NAME
     else
-      echo_step "Starting $NAME container"
+      echo_step "Starting a $NAME container"
       exec_step docker start $CURRENT_ID
     fi
   else
-    echo_step_info "Image $NAME is not runnable"
+    echo_step_info "An image $NAME is not runnable"
   fi
 }
 

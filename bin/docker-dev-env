@@ -30,14 +30,20 @@ show_banner ()
 }
 
 # Parses arguments passed to this script. Should be invoked with $@ as argument.
-# Image's names to build are stored in IMAGES_TO_RUN.
+# An image's names to build are stored in IMAGES_TO_RUN.
 parse_args ()
 {
   while [[ $# > 0 ]]; do
     ARG="$1"
 
-    if [[ $ARG == "-v" ]]; then
+    if [[ $ARG == "-v" || $ARG == "--verbose" ]]; then
       VERBOSE=1
+    elif [[ $ARG == "--mount-dir" ]]; then
+      shift
+      MOUNT_DIR=$1
+    elif [[ $ARG == "--tld" ]]; then
+      shift
+      LOCAL_DOMAIAN=$1
     elif [[ $ARG == "--skip-setup-vbox-net" ]]; then
       SETUP_VBOX_NETWORK=$false
     elif [[ $ARG == "--skip-setup-vbox-nfs-sharing" ]]; then
@@ -48,9 +54,6 @@ parse_args ()
       SETUP_CONTAINERS_DNSMASQ=$false
     elif [[ $ARG == "--skip-setup-host-dnsmasq" ]]; then
       SETUP_HOST_DNSMASQ=$false
-    elif [[ $ARG == "--mount-dir" ]]; then
-      shift
-      MOUNT_DIR=$1
     else
       IMAGES_TO_RUN="$IMAGES_TO_RUN $ARG"
     fi
@@ -59,8 +62,8 @@ parse_args ()
   done
 }
 
-# Takes one argument, a variable name and stores in it path where Docker volumes
-# will be mounted.
+# Takes one argument, a variable name and stores in it path where the Docker
+# volumes will be mounted.
 #
 # $1 - Variable name.
 setup_mount_dir ()
@@ -76,11 +79,11 @@ setup_mount_dir ()
   mkdir -p $_MOUNT_DIR
   eval "$1=$_MOUNT_DIR"
 
-  echo_step_info "Docker volumes will be mounted into $_MOUNT_DIR"
+  echo_step_info "The Docker volumes will be mounted in $_MOUNT_DIR"
 }
 
-# Runs image.sh scripts stored in image directory which builds or starts
-# Docker images. Images to build are defined in IMAGES_TO_RUN variable.
+# Runs image.sh scripts stored in an image directory which builds or starts
+# the Docker images. Images to build are defined in an IMAGES_TO_RUN variable.
 build_images ()
 {
   local MOUNT_DIR=$1

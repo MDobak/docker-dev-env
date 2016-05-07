@@ -4,16 +4,17 @@
 # Copyright © 2016 Michał Dobaczewski <mdobak@gmail.com>
 #
 
-# Volumes mount dir used by default on Linux
+# Volumes mount dir used by default on a Linux
 LINUX_MOUNT_DIR=/var/work
 
-# Volumes mount dir used by default on MacOS
+# Volumes mount dir used by default on a Mac OS
 MACOS_MOUNT_DIR=$HOME/Work/Volumes
 
-# Domain used for Docker machines in dnsmasq configuration and /etc/hosts
-LOCAL_DOMAIAN="loc"
+# A domain used for the Docker machines in the Dnsmasq configuration and
+# a /etc/hosts file
+LOCAL_DOMAIAN=".loc"
 
-# Verbode level
+# Verbose level
 # 0 - no verbose
 # 1 - show full commands output
 VERBOSE=0
