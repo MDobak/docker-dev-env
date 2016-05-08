@@ -16,7 +16,7 @@ build_dnsmasq_config ()
 
   for VM in `docker ps|tail -n +2|awk '{print $NF}'`; do
       IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' $VM`;
-      _HOSTS="${_HOSTS}address=/$VM$LOCAL_DOMAIAN/$IP\\\\n";
+      _HOSTS="${_HOSTS}address=/$VM$HOSTNAME_SUFFIX/$IP\\\\n";
   done
 
   eval "$1=\$_HOSTS"
@@ -49,18 +49,18 @@ EOF
   echo_step_result_ok
 }
 
-# Sets configuration for the Dnsmasq from build_dnsmasq_config on the Docker
-# containers.
+# Sets a configuration for the Dnsmasq from the build_dnsmasq_config function
+# on the Docker containers.
 setup_containers_dnsmasq ()
 {
   build_dnsmasq_config HOSTS
 
   for VM in `docker ps|tail -n +2|awk '{print $NF}'`; do
-      CONTAINER_CMD="test -d /etc/dnsmasq.d && printf '$HOSTS' >> /etc/dnsmasq.d/docker-hosts.conf"
-      DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
+    CONTAINER_CMD="test -d /etc/dnsmasq.d && printf '$HOSTS' >> /etc/dnsmasq.d/docker-hosts.conf"
+    DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
 
-      echo_step "Configuring the Dnsmasq for a \"$VM\" machine"
-      eval "docker exec $VM $DOCKER_CMD"
-      echo_step_result_ok
+    echo_step "Configuring the Dnsmasq for a \"$VM\" machine"
+    eval "docker exec $VM $DOCKER_CMD"
+    echo_step_result_ok
   done
 }

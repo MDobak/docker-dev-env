@@ -41,9 +41,9 @@ parse_args ()
     elif [[ $ARG == "--mount-dir" ]]; then
       shift
       MOUNT_DIR=$1
-    elif [[ $ARG == "--tld" ]]; then
+    elif [[ $ARG == "--hostname-suffix" ]]; then
       shift
-      LOCAL_DOMAIAN=$1
+      HOSTNAME_SUFFIX=$1
     elif [[ $ARG == "--skip-setup-vbox-net" ]]; then
       SETUP_VBOX_NETWORK=$false
     elif [[ $ARG == "--skip-setup-vbox-nfs-sharing" ]]; then

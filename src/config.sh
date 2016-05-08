@@ -12,7 +12,7 @@ MACOS_MOUNT_DIR=$HOME/Work/Volumes
 
 # A domain used for the Docker Machines in the Dnsmasq configuration and
 # the /etc/hosts file
-LOCAL_DOMAIAN=".loc"
+HOSTNAME_SUFFIX=".loc"
 
 # Verbose level
 # 0 - no verbose
