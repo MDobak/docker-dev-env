@@ -6,7 +6,7 @@
 
 _HOSTS_SH=1
 
-# Builds a /etc/hosts configuration file. The configuration file will maps the
+# Builds the /etc/hosts configuration file. The configuration file will maps the
 # Docker containers names to thiers IPs.
 #
 # $1 - A variable name to store output.
@@ -32,7 +32,7 @@ setup_containers_host_files ()
       CONTAINER_CMD="printf '$HOSTS' >> /etc/hosts; eval 'sort -u /etc/hosts' > /etc/hosts_tmp; cat /etc/hosts_tmp > /etc/hosts"
       DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
 
-      echo_step "Configuring a /etc/hosts file for a $VM"
+      echo_step "Configuring the /etc/hosts file for a \"$VM\" machine"
       eval "docker exec $VM $DOCKER_CMD"
       echo_step_result_ok
   done

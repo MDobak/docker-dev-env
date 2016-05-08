@@ -35,8 +35,8 @@ setup_host_dnsmasq ()
     sudo -s -- <<EOF
       mkdir -p /opt/local/etc/dnsmasq.d
       printf $HOSTS > /opt/local/etc/dnsmasq.d/docker-hosts.conf
-      launchctl load /Library/LaunchDaemons/org.macports.dnsmasq.plist
-      launchctl unload /Library/LaunchDaemons/org.macports.dnsmasq.plist
+      launchctl stop /Library/LaunchDaemons/org.macports.dnsmasq.plist
+      launchctl start /Library/LaunchDaemons/org.macports.dnsmasq.plist
 EOF
       dscacheutil -flushcache
   elif is_linux; then
@@ -59,7 +59,7 @@ setup_containers_dnsmasq ()
       CONTAINER_CMD="test -d /etc/dnsmasq.d && printf '$HOSTS' >> /etc/dnsmasq.d/docker-hosts.conf"
       DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
 
-      echo_step "Configuring the Dnsmasq for a $VM machine"
+      echo_step "Configuring the Dnsmasq for a \"$VM\" machine"
       eval "docker exec $VM $DOCKER_CMD"
       echo_step_result_ok
   done

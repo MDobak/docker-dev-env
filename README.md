@@ -7,7 +7,7 @@ The shell script intended to simplify creation of developing environments in the
 ## What this script does?
 
 * Configures the Dnsmasq to resolve containers hostnames on a host OS and containers (if the dnsmasq is installed on a container).
-* Adds containers hostnames to a /etc/hosts file in all running containers.
+* Adds containers hostnames to the /etc/hosts file in all running containers.
 * Mac OS: Configures a network bridge in a VirtualBox and adds gateway route on host OS to expose containers IPs (172.\*) for host.
 * Mac OS: [Configures NFS sharing](https://github.com/adlogix/docker-machine-nfs) (works faster than default vboxsf)
 

@@ -10,8 +10,8 @@ LINUX_MOUNT_DIR=/var/work
 # Volumes mount dir used by default on a Mac OS
 MACOS_MOUNT_DIR=$HOME/Work/Volumes
 
-# A domain used for the Docker machines in the Dnsmasq configuration and
-# a /etc/hosts file
+# A domain used for the Docker Machines in the Dnsmasq configuration and
+# the /etc/hosts file
 LOCAL_DOMAIAN=".loc"
 
 # Verbose level

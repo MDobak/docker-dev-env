@@ -14,7 +14,7 @@ start_docker_machine()
    fi;
 
    if [ "$(docker-machine status)" != "Running" ]; then
-     echo_step "Starting the Docker machine"
+     echo_step "Starting the Docker Machine"
      exec_step docker-machine start
    fi
 
@@ -29,7 +29,7 @@ stop_docker_machine()
    fi;
 
    if [ "$(docker-machine status)" == "Running" ]; then
-     echo_step "Stopping the Docker machine"
+     echo_step "Stopping the Docker Machine"
      exec_step docker-machine stop
    fi
 }
@@ -46,7 +46,7 @@ setup_vbox_network ()
       stop_docker_machine
     fi
 
-    echo_step "Adding a bridged network card to the VitualBox"
+    echo_step "Adding a bridged network card to the VirtualBox"
     exec_step VBoxManage modifyvm default --nic3 bridged --bridgeadapter3 en0 --nictype3 82540EM
   else
     echo_step_skip "The VirtualBox network interface is already configured"
@@ -64,14 +64,14 @@ setup_vbox_gw ()
   start_docker_machine
 
   if ! netstat -rn | grep -q "^172.17/24\s*$(docker-machine ip)"; then
-    echo_step "Adding a gateway rule for the Docker machine"
+    echo_step "Adding a gateway rule for the Docker Machine"
 
     exec_cmd sudo_wrapper route -n delete 172.17.0.0/24
     exec_cmd sudo_wrapper route add 172.17.0.0/24 $(docker-machine ip)
 
     echo_step_result_auto
   else
-    echo_step_skip "A gateway rule for the Docker machine already exists"
+    echo_step_skip "A gateway rule for the Docker Machine already exists"
   fi
 }
 
