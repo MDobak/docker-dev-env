@@ -66,14 +66,14 @@ setup_dev_container ()
   if [[ $BUILD == $true ]]; then
     local CURRENT_ID=$(docker ps -a | grep "\s$NAME$" | awk '{print $1}')
     if [[ -z $CURRENT_ID ]]; then
-      echo_step "Running a fresh $NAME container"
+      echo_step "Running a fresh \"$NAME\" container"
       exec_step docker run $ARGS --name="$NAME" $NAME
     else
-      echo_step "Starting a $NAME container"
+      echo_step "Starting a \"$NAME\" container"
       exec_step docker start $CURRENT_ID
     fi
   else
-    echo_step_info "An image $NAME is not runnable"
+    echo_step_info "An image \"$NAME\" is not runnable"
   fi
 }
 

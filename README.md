@@ -31,6 +31,22 @@ To start your machines you need to run the `./bin/docker-dev-env` script and pro
 
 Now, an `example-php5` and an `example-mysql` containers will be accessible through an `example-php5.loc` and an `example-mysql.loc` domains. You can use these domains also inside your containers.
 
+```sh
+Usage: ./docker-dev-env [OPTIONS] [DIRECTORIES...]
+
+Options:
+
+-h, --help                      Print help message.
+-v, --verbose                   Run with a lot of debugging output.
+-m, --mount-dir <dir>           The directory where a NFS folder will be mount.
+-H, --hostname-suffix <suffix>  The suffix appended to hostnames. Default ".loc".
+--skip-setup-vbox-net           Skip the VirtualBox bridged network configuration.
+--skip-setup-vbox-nfs-sharing   Skip the VirtualBox NFS configuration.
+--skip-setup-containers-host    Skip the /etc/hosts file configurstion on containers.
+--skip-setup-containers-dnsmasq Skip the Dnsmasq configuration on containers.
+--skip-setup-host-dnsmasq       Skip the Dnsmasq configuration on host OS.
+```
+
 ## Requirements
 
 * [Docker](https://www.docker.com/)

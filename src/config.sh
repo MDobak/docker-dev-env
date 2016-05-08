@@ -19,6 +19,9 @@ HOSTNAME_SUFFIX=".loc"
 # 1 - show full commands output
 VERBOSE=0
 
+# Indicates if the help message will be shown
+SHOW_HELP=$false
+
 SETUP_VBOX_NETWORK=$true
 SETUP_VBOX_NFS_SHARING=$true
 SETUP_CONTAINERS_HOSTS=$true
