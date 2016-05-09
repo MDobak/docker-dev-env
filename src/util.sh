@@ -23,11 +23,6 @@ check_requirements ()
 {
   local IS_OK=$true;
 
-  if ! command_exists dnsmasq; then
-    echo_error "Fail: dnsmasq is required for this script"
-    IS_OK=$false;
-  fi;
-
   if is_mac && ! command_exists docker; then
     echo_error "Fail: docker-machine is required for this script"
     IS_OK=$false;
