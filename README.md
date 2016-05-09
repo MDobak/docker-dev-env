@@ -55,7 +55,6 @@ Options:
 ## Requirements
 
 * [Docker](https://www.docker.com/)
-* [Dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) (on a Mac OS currently supports only version installed from a Macports)
 
 For Mac OS only:
 * [Docker Machine](https://docs.docker.com/machine/) 0.5.0+
