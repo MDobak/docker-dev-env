@@ -170,5 +170,5 @@ setup_dnsmasq_resolv
 docker_remove_untagged_images
 
 echo
-echo_success "    All done!"
+echo_success "All done!"
 echo

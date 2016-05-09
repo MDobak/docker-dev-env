@@ -74,8 +74,8 @@ echo_fatal ()
 {
   echo
   echo_warn  "--------------------------------------------------------------------------------"
-  echo_error "    Script failed!                                                              "
-  echo_error "    $1"
+  echo_error "  Script failed!                                                              "
+  echo_error "  $1"
   echo_warn  "--------------------------------------------------------------------------------"
   echo
 
@@ -90,9 +90,9 @@ echo_fatal ()
 echo_step ()
 {
   if [[ $VERBOSE == 0 ]]; then
-    printf "    \033[0m[    ] \033[0;32m$1\033[0m\r"
+    printf "\033[0m[    ] \033[0;32m$1\033[0m\r"
   else
-    printf "    \033[0;32m$1\033[0m\n"
+    printf "\033[0;32m$1\033[0m\n"
   fi
 }
 
@@ -100,7 +100,7 @@ echo_step ()
 echo_step_result_ok ()
 {
   if [[ $VERBOSE == 0 ]]; then
-    printf "    \033[0;32m[ OK ]\n"
+    printf "\033[0;32m[ OK ]\n"
   fi
 }
 
@@ -108,7 +108,7 @@ echo_step_result_ok ()
 echo_step_result_fail ()
 {
   if [[ $VERBOSE == 0 ]]; then
-    printf "    \033[0;31m[FAIL]\n"
+    printf "\033[0;31m[FAIL]\n"
   fi
 }
 
@@ -130,7 +130,7 @@ echo_step_result_auto ()
 # $1 - A message.
 echo_step_info ()
 {
-  printf "    \033[0;34m[INFO] \033[0;32m$1\033[0m\n"
+  printf "\033[0;34m[INFO] \033[0;32m$1\033[0m\n"
 }
 
 # Prints a step name with the "SKIP" status.
@@ -138,7 +138,7 @@ echo_step_info ()
 # $1 - A message.
 echo_step_skip ()
 {
-  printf "    \033[0;36m[SKIP] \033[0;32m$1\033[0m\n"
+  printf "\033[0;36m[SKIP] \033[0;32m$1\033[0m\n"
 }
 
 # Should be used to execute step commands after a echo_step.
@@ -159,7 +159,7 @@ exec_step ()
       local CURRENT_SPINNER=${SPINNER[${SPINNER_IDX}]}
       SPINNER_IDX=$(( ($SPINNER_IDX+1) % 8 ))
 
-      printf "    \033[0m[$CURRENT_SPINNER]\r"
+      printf "\033[0m[$CURRENT_SPINNER]\r"
       sleep 0.5
     done
 
@@ -200,11 +200,11 @@ sudo_prompt ()
   local IS_ROOT=$(sudo_wrapper whoami 2> /dev/null)
 
   if [[ $IS_ROOT != "root" ]]; then
-    echo_warn "    The root is required to run some commands in this script:"
+    echo_warn "The root is required to run some commands in this script:"
   fi
 
   until [[ $IS_ROOT == "root" ]]; do
-    printf "    Root password: "
+    printf "Root password: "
     read -s ROOT_PASSWORD
     echo "***"
 
