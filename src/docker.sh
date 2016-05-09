@@ -46,10 +46,11 @@ setup_dev_container ()
 {
   local NAME=$1
   local DIR=$2
+  local IMAGE=$3
   local BUILD=$true
   local ARGS=""
 
-  shift 2
+  shift 3
 
   for ARG in $@; do
     if [[ $ARG == '--build-only' ]]; then
@@ -59,7 +60,7 @@ setup_dev_container ()
     fi
   done
 
-  if ! docker images | grep -q "^$NAME\s"; then
+  if ! (docker images | grep -q "^$NAME\s") && [[ -f $DIR/Dockerfile ]]; then
     docker_dev_container_rebuild $NAME $DIR
   fi
 
@@ -67,7 +68,7 @@ setup_dev_container ()
     local CURRENT_ID=$(docker ps -a | grep "\s$NAME$" | awk '{print $1}')
     if [[ -z $CURRENT_ID ]]; then
       echo_step "Running a fresh \"$NAME\" container"
-      exec_step docker run $ARGS --name="$NAME" $NAME
+      exec_step docker run $ARGS --hostname="$NAME" --name="$NAME" $IMAGE
     else
       echo_step "Starting a \"$NAME\" container"
       exec_step docker start $CURRENT_ID

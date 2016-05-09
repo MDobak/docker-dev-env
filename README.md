@@ -13,9 +13,13 @@ This shell script is intended to simplify creation of a development environments
 
 ## How to use?
 
-Every development environment must be configured using the `Dockerfile` file. To make it compatible with this script you need to add the `DevEnvConf` file in the same folder as your `Dockerfile`. The `DevEnvFile` is regular shell script which must define two variables:
-* `NAME` - The name is used as an image name, an container name, and a hostname. The hostname is suffixed with ".loc". You can change this suffix using script's options.
+To create new development environment you need to create the `DevEnvFile` file with configuration of your container. If you create the `Dockerfile` in the same folder as your `DevEnvFile` it will be built automatically.
+
+The `DevEnvFile` is regular shell script with at least two variables:
+* `NAME` - The name is used as an image name (if you create the `Dockerfile`), an container name, and a hostname. The hostname is suffixed with ".loc". You can change this suffix using script's options.
 * `ARGS` - Arguments for the Docker's run command. You can provide special argument `--build-only` to prevent an image from run. It can be useful if you use some images as templates.
+* `IMAGE` - (optional) An image used for build a container. By default value from a `$NAME` variable is used.
+
 
 The simple `DevEnvFile` file could look like this:
 ```bash

@@ -113,11 +113,11 @@ build_images ()
   local MOUNT_DIR=$1
   shift 1
 
-  for IMAGE in $IMAGES_TO_RUN; do
-    if [[ $IMAGE == @* ]]; then
-      DIR=$BASE_DIR/../images/${IMAGE:1}
+  for IMAGE_DIR in $IMAGES_TO_RUN; do
+    if [[ $IMAGE_DIR == @* ]]; then
+      DIR=$BASE_DIR/../images/${IMAGE_DIR:1}
     else
-      DIR=$IMAGE
+      DIR=$IMAGE_DIR
     fi
 
     if ! [[ -f $DIR/DevEnvConf ]]; then
@@ -125,7 +125,12 @@ build_images ()
     fi
 
     . $DIR/DevEnvConf
-    setup_dev_container "$NAME" "$DIR" -h="$NAME" $ARGS
+
+    if [[ -z $IMAGE ]]; then
+      IMAGE=$NAME
+    fi
+
+    setup_dev_container "$NAME" "$DIR" $IMAGE $ARGS
   done
 }
 
