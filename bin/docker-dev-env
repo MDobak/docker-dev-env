@@ -5,7 +5,7 @@
 #
 
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-IMAGES_TO_RUN=""
+IMAGES_TO_RUN="images/dnsmasq-server"
 
 . $BASE_DIR/../src/util.sh
 . $BASE_DIR/../src/vbox.sh
@@ -43,9 +43,7 @@ show_help ()
   echo '-H, --hostname-suffix <suffix>  The suffix appended to hostnames. Default ".loc".'
   echo '--skip-setup-vbox-net           Skip the VirtualBox bridged network configuration.'
   echo '--skip-setup-vbox-nfs-sharing   Skip the VirtualBox NFS configuration.'
-  echo '--skip-setup-containers-host    Skip the /etc/hosts file configurstion on containers.'
-  echo '--skip-setup-containers-dnsmasq Skip the Dnsmasq configuration on containers.'
-  echo '--skip-setup-host-dnsmasq       Skip the Dnsmasq configuration on host OS.'
+  echo '--skip-setup-containers-host    Skip the /etc/hosts file configuration on containers.'
   echo
 
   exit 0
@@ -74,10 +72,6 @@ parse_args ()
       SETUP_VBOX_NFS_SHARING=$false
     elif [[ $ARG == "--skip-setup-containers-host" ]]; then
       SETUP_CONTAINERS_HOSTS=$false
-    elif [[ $ARG == "--skip-setup-containers-dnsmasq" ]]; then
-      SETUP_CONTAINERS_DNSMASQ=$false
-    elif [[ $ARG == "--skip-setup-host-dnsmasq" ]]; then
-      SETUP_HOST_DNSMASQ=$false
     else
       IMAGES_TO_RUN="$IMAGES_TO_RUN $ARG"
     fi
@@ -169,6 +163,9 @@ fi
 if [[ $SETUP_CONTAINERS_HOSTS == $true ]]; then
   setup_containers_host_files
 fi
+
+setup_dnsmasq_config
+setup_dnsmasq_resolv
 
 docker_remove_untagged_images
 

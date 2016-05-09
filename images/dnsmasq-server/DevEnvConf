@@ -1,0 +1,5 @@
+#!/bin/bash
+
+NAME="dnsmasq-server"
+ARGS="-tdi -p 53:53/tcp -p 53:53/udp --cap-add=NET_ADMIN"
+IMAGE="andyshinn/dnsmasq:2.75"

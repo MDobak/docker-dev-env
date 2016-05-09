@@ -1,3 +1,4 @@
 images/*
+!images/dnsmasq-server
 !images/example-mysql
 !images/example-php5
