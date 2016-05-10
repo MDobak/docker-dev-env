@@ -118,6 +118,10 @@ build_images ()
       echo_fatal "Configuration file $DIR/DevEnvConf do not exists!"
     fi
 
+    NAME=""
+    ARGS=""
+    IMAGE=""
+
     . $DIR/DevEnvConf
 
     if [[ -z $IMAGE ]]; then
