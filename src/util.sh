@@ -215,7 +215,7 @@ sudo_prompt ()
 sudo_wrapper ()
 {
   sudo -k
-  echo "$ROOT_PASSWORD" | sudo -S -p "" $@
+  echo "$ROOT_PASSWORD" | sudo -S -p "" -s "$@"
 }
 
 # Checks if current OS is a Linux.
