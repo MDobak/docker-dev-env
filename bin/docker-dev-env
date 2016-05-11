@@ -37,16 +37,34 @@ show_help ()
   echo
   echo 'Options:'
   echo
-  echo '-h, --help                      Print help message.'
-  echo '-v, --verbose                   Run with a lot of debugging output.'
-  echo '-m, --mount-dir <dir>           The directory where a NFS folder will be mount.'
-  echo '-H, --hostname-suffix <suffix>  The suffix appended to hostnames. Default ".loc".'
-  echo '--skip-setup-vbox-net           Skip the VirtualBox bridged network configuration.'
-  echo '--skip-setup-vbox-nfs-sharing   Skip the VirtualBox NFS configuration.'
-  echo '--skip-setup-containers-host    Skip the /etc/hosts file configuration on containers.'
+  echo '-h, --help                        Print help message.'
+  echo '-v, --verbose                     Run with a lot of debugging output.'
+  echo '-m, --mount-dir <dir>             The directory where a NFS folder will be mount.'
+  echo '-H, --hostname-suffix <suffix>    The suffix appended to hostnames. Default ".loc".'
+  echo '--setup-vbox-net <flag>           Configure the VirtualBox bridged network. Default enabled.'
+  echo '--setup-vbox-nfs-sharing <flag>   Configure the VirtualBox NFS. Default enabled.'
+  echo '--setup-containers-host <flag>    Configure the /etc/hosts file configuration on containers. Default enabled.'
+  echo '--setup-containers-dnsmasq <flag> Configure the Dnsmasq on containers. Default disabled.'
+  echo '--setup-hosts <flag>              Configure the /etc/hosts file configuration on the host OS. Default disabled.'
+  echo '--setup-dnsmasq <flag>            Configure the Dnsmasq on the host OS. Default enabled.'
+  echo
+  echo '<flag> - Binary value, 0 or 1.'
   echo
 
   exit 0
+}
+
+# Parses a binary argument. If the argument is equal "1" will return $true.
+# Otherwise $false.
+#
+# $1 - Argument to parse.
+parse_binary_arg ()
+{
+  if [ $1 == "1" ]; then
+    return $true;
+  else
+    return $false;
+  fi
 }
 
 # Parses arguments passed to this script. Should be invoked with $@ as argument.
@@ -66,12 +84,24 @@ parse_args ()
     elif [[ $ARG == "-H" || $ARG == "--hostname-suffix" ]]; then
       shift
       HOSTNAME_SUFFIX=$1
-    elif [[ $ARG == "--skip-setup-vbox-net" ]]; then
-      SETUP_VBOX_NETWORK=$false
-    elif [[ $ARG == "--skip-setup-nfs-sharing" ]]; then
-      SETUP_VBOX_NFS_SHARING=$false
-    elif [[ $ARG == "--skip-setup-containers-host" ]]; then
-      SETUP_CONTAINERS_HOSTS=$false
+    elif [[ $ARG == "--setup-vbox-net" ]]; then
+      shift
+      SETUP_VBOX_NETWORK=$(parse_binary_arg $1)
+    elif [[ $ARG == "--setup-nfs-sharing" ]]; then
+      shift
+      SETUP_VBOX_NFS_SHARING=$(parse_binary_arg $1)
+    elif [[ $ARG == "--setup-containers-host" ]]; then
+      shift
+      SETUP_CONTAINERS_HOSTS=$(parse_binary_arg $1)
+    elif [[ $ARG == "--setup-containers-dnsmasq" ]]; then
+      shift
+      SETUP_CONTAINERS_DNSMASQ=$(parse_binary_arg $1)
+    elif [[ $ARG == "--setup-hosts" ]]; then
+      shift
+      SETUP_HOST_HOSTS=$(parse_binary_arg $1)
+    elif [[ $ARG == "--setup-dnsmasq" ]]; then
+      shift
+      SETUP_HOST_DNSMASQ=$(parse_binary_arg $1)
     else
       IMAGES_TO_RUN="$IMAGES_TO_RUN $ARG"
     fi
@@ -156,9 +186,6 @@ fi
 start_docker_machine
 build_images $MOUNT_DIR $@
 
-if [[ $SETUP_HOST_DNSMASQ == $true ]]; then
-  setup_host_dnsmasq
-fi
 
 if [[ $SETUP_CONTAINERS_DNSMASQ == $true ]]; then
   setup_containers_dnsmasq
@@ -166,6 +193,14 @@ fi
 
 if [[ $SETUP_CONTAINERS_HOSTS == $true ]]; then
   setup_containers_host_files
+fi
+
+if [[ $SETUP_HOST_DNSMASQ == $true ]]; then
+  setup_host_dnsmasq
+fi
+
+if [[ $SETUP_HOST_HOSTS == $true ]]; then
+  setup_host_file
 fi
 
 setup_dnsmasq_config

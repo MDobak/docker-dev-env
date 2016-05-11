@@ -25,22 +25,37 @@ build_dnsmasq_config ()
 # Sets configuration for the Dnsmasq from build_dnsmasq_config on a host OS.
 setup_host_dnsmasq ()
 {
+  if ! command_exists dnsmasq; then
+    echo_error "Fail: dnsmasq is required for this script. You can disable configuring the Dnsmasq using --setup-dnsmasq 0."
+    IS_OK=$false;
+  fi;
+
   build_dnsmasq_config HOSTS
 
   echo_step "Configuring the Dnsmasq for the host OS"
 
   if is_mac; then
-    sudo_wrapper mkdir -p /opt/local/etc/dnsmasq.d
-
-    sudo -s -- <<EOF
-      mkdir -p /opt/local/etc/dnsmasq.d
-      printf $HOSTS > /opt/local/etc/dnsmasq.d/docker-hosts.conf
-      launchctl stop /Library/LaunchDaemons/org.macports.dnsmasq.plist
-      launchctl start /Library/LaunchDaemons/org.macports.dnsmasq.plist
+    if [[ -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then
+      sudo -s -- <<EOF
+        mkdir -p $(brew --prefix dnsmasq)/etc/dnsmasq.d
+        printf $HOSTS > $(brew --prefix dnsmasq)/etc/dnsmasq.d/docker-hosts.conf
+        launchctl unload /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist
+        launchctl load /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist
 EOF
+    elif [[ -f /Library/LaunchDaemons/org.macports.dnsmasq.plist ]]; then
+      sudo -s -- <<EOF
+        mkdir -p /opt/local/etc/dnsmasq.d
+        printf $HOSTS > /opt/local/etc/dnsmasq.d/docker-hosts.conf
+        launchctl unload /Library/LaunchDaemons/org.macports.dnsmasq.plist
+        launchctl load /Library/LaunchDaemons/org.macports.dnsmasq.plist
+EOF
+    fi
+
       dscacheutil -flushcache
+      sudo_wrapper killall -HUP mDNSResponder
   elif is_linux; then
     sudo_wrapper -s -- <<EOF
+      grep -q "^conf-dir=/etc/dnsmasq.d$" /etc/dnsmasq.conf || echo "conf-dir=/etc/dnsmasq.d" >> /etc/dnsmasq.conf
       printf $HOSTS > /etc/dnsmasq.d/docker-hosts.conf
       service dnsmasq restart
 EOF
@@ -73,8 +88,9 @@ setup_dnsmasq_config ()
   CONTAINER_CMD="test -d /etc/dnsmasq.d && printf '$HOSTS' >> /etc/dnsmasq.d/docker-hosts.conf"
   DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
 
-  echo_step "Configuring the Dnsmasq"
-  exec_cmd docker exec dnsmasq-server sed -i "s/#conf-dir=\/etc\/dnsmasq.d/conf-dir=\/etc\/dnsmasq.d/" /etc/dnsmasq.conf
+  echo_step "Configuring the dnsmasq-server"
+  exec_cmd docker exec dnsmasq-server /bin/sh -c \
+    "grep -q \"^conf-dir=/etc/dnsmasq.d$\" /etc/dnsmasq.conf || echo \"conf-dir=/etc/dnsmasq.d\" >> /etc/dnsmasq.conf"
   exec_cmd docker exec dnsmasq-server mkdir -p /etc/dnsmasq.d
   exec_cmd docker stop dnsmasq-server
   exec_cmd docker start dnsmasq-server

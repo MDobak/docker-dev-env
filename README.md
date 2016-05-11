@@ -43,13 +43,18 @@ Usage: ./docker-dev-env [OPTIONS] [DIRECTORIES...]
 
 Options:
 
--h, --help                      Print help message.
--v, --verbose                   Run with a lot of debugging output.
--m, --mount-dir <dir>           The directory where a NFS folder will be mount.
--H, --hostname-suffix <suffix>  The suffix appended to hostnames. Default ".loc".
---skip-setup-vbox-net           Skip the VirtualBox bridged network configuration.
---skip-setup-vbox-nfs-sharing   Skip the VirtualBox NFS configuration.
---skip-setup-containers-host    Skip the /etc/hosts file configuration on containers.
+-h, --help                        Print help message.
+-v, --verbose                     Run with a lot of debugging output.
+-m, --mount-dir <dir>             The directory where a NFS folder will be mount.
+-H, --hostname-suffix <suffix>    The suffix appended to hostnames. Default ".loc".
+--setup-vbox-net <flag>           Configure the VirtualBox bridged network. Default enabled.
+--setup-vbox-nfs-sharing <flag>   Configure the VirtualBox NFS. Default enabled.
+--setup-containers-host <flag>    Configure the /etc/hosts file configuration on containers. Default enabled.
+--setup-containers-dnsmasq <flag> Configure the Dnsmasq on containers. Default disabled.
+--setup-hosts <flag>              Configure the /etc/hosts file configuration on the host OS. Default disabled.
+--setup-dnsmasq <flag>            Configure the Dnsmasq on the host OS. Default enabled.
+
+<flag> - Binary value, 0 or 1.
 ```
 
 ## Requirements
