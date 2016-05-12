@@ -86,22 +86,28 @@ parse_args ()
       HOSTNAME_SUFFIX=$1
     elif [[ $ARG == "--setup-vbox-net" ]]; then
       shift
-      SETUP_VBOX_NETWORK=$(parse_binary_arg $1)
+      parse_binary_arg $1
+      SETUP_VBOX_NETWORK=$?
     elif [[ $ARG == "--setup-nfs-sharing" ]]; then
       shift
-      SETUP_VBOX_NFS_SHARING=$(parse_binary_arg $1)
+      parse_binary_arg $1
+      SETUP_VBOX_NFS_SHARING=$?
     elif [[ $ARG == "--setup-containers-host" ]]; then
       shift
-      SETUP_CONTAINERS_HOSTS=$(parse_binary_arg $1)
+      parse_binary_arg $1
+      SETUP_CONTAINERS_HOSTS=$?
     elif [[ $ARG == "--setup-containers-dnsmasq" ]]; then
       shift
-      SETUP_CONTAINERS_DNSMASQ=$(parse_binary_arg $1)
+      parse_binary_arg $1
+      SETUP_CONTAINERS_DNSMASQ=$?
     elif [[ $ARG == "--setup-hosts" ]]; then
       shift
-      SETUP_HOST_HOSTS=$(parse_binary_arg $1)
+      parse_binary_arg $1
+      SETUP_HOST_HOSTS=$?
     elif [[ $ARG == "--setup-dnsmasq" ]]; then
       shift
-      SETUP_HOST_DNSMASQ=$(parse_binary_arg $1)
+      parse_binary_arg $1
+      SETUP_HOST_DNSMASQ=$?
     else
       IMAGES_TO_RUN="$IMAGES_TO_RUN $ARG"
     fi
@@ -185,7 +191,6 @@ fi
 
 start_docker_machine
 build_images $MOUNT_DIR $@
-
 
 if [[ $SETUP_CONTAINERS_DNSMASQ == $true ]]; then
   setup_containers_dnsmasq

@@ -6,8 +6,8 @@
 
 _DNSMASQ_SH=1
 
-# Builds the Dnsmasq configuration file. Configuration file will maps the Docker
-# containers names to thiers IPs.
+# Builds the Dnsmasq configuration file. The configuration file will maps
+# Docker containers names to thiers IPs.
 #
 # $1 - A variable name to store output.
 build_dnsmasq_config ()
@@ -26,7 +26,7 @@ build_dnsmasq_config ()
 setup_host_dnsmasq ()
 {
   if ! command_exists dnsmasq; then
-    echo_error "Fail: dnsmasq is required for this script. You can disable configuring the Dnsmasq using --setup-dnsmasq 0."
+    echo_error "Fail: The dnsmasq is required to run this step. You can disable configuring the Dnsmasq using --setup-dnsmasq 0."
     IS_OK=$false;
   fi;
 
