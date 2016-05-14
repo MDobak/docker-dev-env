@@ -71,8 +71,8 @@ setup_containers_dnsmasq ()
   build_dnsmasq_config HOSTS
 
   for VM in `docker ps|tail -n +2|awk '{print $NF}'`; do
-    CONTAINER_CMD="test -d /etc/dnsmasq.d && printf '$HOSTS' >> /etc/dnsmasq.d/docker-hosts.conf"
-    DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
+    local CONTAINER_CMD="test -d /etc/dnsmasq.d && printf '$HOSTS' >> /etc/dnsmasq.d/docker-hosts.conf"
+    local DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
 
     echo_step "Configuring the Dnsmasq for a \"$VM\" machine"
     eval "docker exec $VM $DOCKER_CMD"
@@ -85,8 +85,8 @@ setup_dnsmasq_config ()
 {
   build_dnsmasq_config HOSTS
 
-  CONTAINER_CMD="test -d /etc/dnsmasq.d && printf '$HOSTS' >> /etc/dnsmasq.d/docker-hosts.conf"
-  DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
+  local CONTAINER_CMD="test -d /etc/dnsmasq.d && printf '$HOSTS' >> /etc/dnsmasq.d/docker-hosts.conf"
+  local DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
 
   echo_step "Configuring the dnsmasq-server"
   exec_cmd docker exec dnsmasq-server /bin/sh -c \
@@ -102,15 +102,15 @@ setup_dnsmasq_config ()
 # container IP.
 setup_dnsmasq_resolv ()
 {
-  DNSMASQ_IP=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' dnsmasq-server)
+  local DNSMASQ_IP=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' dnsmasq-server)
 
   for VM in `docker ps|tail -n +2|awk '{print $NF}'`; do
     if [[ $VM == 'dnsmasq-server' ]]; then
       continue
     fi
 
-    CONTAINER_CMD="printf 'nameserver $DNSMASQ_IP' > /etc/resolv.conf"
-    DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
+    local CONTAINER_CMD="printf 'nameserver $DNSMASQ_IP' > /etc/resolv.conf"
+    local DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
 
     echo_step "Configuring the /etc/resolv.conf file for a \"$VM\" machine"
     exec_cmd eval "docker exec $VM $DOCKER_CMD"
