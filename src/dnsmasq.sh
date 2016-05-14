@@ -26,8 +26,8 @@ build_dnsmasq_config ()
 setup_host_dnsmasq ()
 {
   if ! command_exists dnsmasq; then
-    echo_error "Fail: The dnsmasq is required to run this step. You can disable configuring the Dnsmasq using --setup-dnsmasq 0."
-    IS_OK=$false;
+    echo_step_skip "The Dnsmasq configuration was skipped beacuse is not installed on host OS"
+    return
   fi;
 
   build_dnsmasq_config HOSTS

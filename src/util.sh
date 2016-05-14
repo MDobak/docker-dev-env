@@ -6,8 +6,8 @@
 
 _UTILS_SH=true;
 
-true=0;
-false=-1;
+true=0
+false=-1
 
 # Check if current OS is supported by this script.
 check_os_support ()
@@ -175,7 +175,9 @@ exec_cmd ()
 {
   case $VERBOSE in
     0)
-      "$@" &> /dev/null ;;
+      LAST_CMD="$@"
+      LAST_ERROR=$($@ 2>&1 >/dev/null)
+      ;;
     1)
       echo "Exec: $@"; "$@" ;;
   esac

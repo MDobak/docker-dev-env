@@ -41,13 +41,14 @@ show_help ()
   echo '-h, --help                        Print help message.'
   echo '-v, --verbose                     Run with a lot of debugging output.'
   echo '-m, --mount-dir <dir>             The directory where a NFS folder will be mount.'
-  echo '-H, --hostname-suffix <suffix>    The suffix appended to hostnames. Default ".loc".'
-  echo '--setup-vbox-net <flag>           Configure the VirtualBox bridged network. Default enabled.'
-  echo '--setup-vbox-nfs-sharing <flag>   Configure the VirtualBox NFS. Default enabled.'
-  echo '--setup-containers-host <flag>    Configure the /etc/hosts file configuration on containers. Default enabled.'
-  echo '--setup-containers-dnsmasq <flag> Configure the Dnsmasq on containers. Default disabled.'
-  echo '--setup-hosts <flag>              Configure the /etc/hosts file configuration on the host OS. Default disabled.'
-  echo '--setup-dnsmasq <flag>            Configure the Dnsmasq on the host OS. Default enabled.'
+  echo '-H, --hostname-suffix <suffix>    The suffix appended to hostnames. Default value: ".loc".'
+  echo '-d, --docker-machine <name>       Name of the Docker Machine. Default value: "default"'
+  echo '--setup-vbox-net <flag>           Configure the VirtualBox bridged network. Enabled by default.'
+  echo '--setup-vbox-nfs-sharing <flag>   Configure the VirtualBox NFS. Enabled by default.'
+  echo '--setup-containers-host <flag>    Configure the /etc/hosts file configuration on containers. Enabled by default.'
+  echo '--setup-containers-dnsmasq <flag> Configure the Dnsmasq on containers. Disabled by default .'
+  echo '--setup-hosts <flag>              Configure the /etc/hosts file configuration on the host OS. Disabled by default.'
+  echo '--setup-dnsmasq <flag>            Configure the Dnsmasq on the host OS. Enabled by default.'
   echo
   echo '<flag> - Binary value, 0 or 1.'
   echo
@@ -85,6 +86,9 @@ parse_args ()
     elif [[ $ARG == "-H" || $ARG == "--hostname-suffix" ]]; then
       shift
       HOSTNAME_SUFFIX=$1
+    elif [[ $ARG == "-d" || $ARG == "--docker-machine" ]]; then
+      shift
+      DOCKER_MACHINE_NAME=$1
     elif [[ $ARG == "--setup-vbox-net" ]]; then
       shift
       parse_binary_arg $1
@@ -181,17 +185,19 @@ check_os_support
 check_requirements
 setup_mount_dir MOUNT_DIR
 
+start_docker_machine $DOCKER_MACHINE_NAME
+regenerate_docker_machine_certs $DOCKER_MACHINE_NAME
+
 if [[ $SETUP_VBOX_NETWORK == $true ]]; then
-  setup_vbox_network
-  setup_vbox_gw
+  setup_vbox_network $DOCKER_MACHINE_NAME
+  setup_vbox_gw $DOCKER_MACHINE_NAME
 fi
 
 if [[ $SETUP_VBOX_NFS_SHARING == $true ]]; then
-  setup_macos_nfsd $MOUNT_DIR
-  setup_docker_machine_nfs_mount $MOUNT_DIR
+  setup_macos_nfsd $DOCKER_MACHINE_NAME $MOUNT_DIR
+  setup_docker_machine_nfs_mount $DOCKER_MACHINE_NAME $MOUNT_DIR
 fi
 
-start_docker_machine
 build_images $MOUNT_DIR $@
 
 if [[ $SETUP_CONTAINERS_DNSMASQ == $true ]]; then
