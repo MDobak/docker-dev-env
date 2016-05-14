@@ -36,14 +36,14 @@ setup_host_dnsmasq ()
 
   if is_mac; then
     if [[ -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then
-      sudo -s -- <<EOF
+      sudo_wrapper -s -- <<EOF
         mkdir -p $(brew --prefix dnsmasq)/etc/dnsmasq.d
         printf $HOSTS > $(brew --prefix dnsmasq)/etc/dnsmasq.d/docker-hosts.conf
         launchctl unload /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist
         launchctl load /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist
 EOF
     elif [[ -f /Library/LaunchDaemons/org.macports.dnsmasq.plist ]]; then
-      sudo -s -- <<EOF
+      sudo_wrapper -s -- <<EOF
         mkdir -p /opt/local/etc/dnsmasq.d
         printf $HOSTS > /opt/local/etc/dnsmasq.d/docker-hosts.conf
         launchctl unload /Library/LaunchDaemons/org.macports.dnsmasq.plist

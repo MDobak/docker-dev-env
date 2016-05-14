@@ -22,18 +22,18 @@ docker_dev_container_rebuild ()
   local DIR=$2;
 
   if docker ps | grep -q "\s$NAME$"; then
-    echo_step "Removing a $NAME container"
+    echo_step "Removing the $NAME container"
     # We intentionaly finds containers based on thier name rather than an image
     # name beacuse we want remove only containers created by this script.
     exec_step docker rm -f $(docker ps | grep "^[^\s]+\s+$NAME\s+" | awk '{print $1}')
   fi
 
   if docker images | grep -q "^$NAME\s"; then
-    echo_step "Removing a $NAME image"
+    echo_step "Removing the $NAME image"
     exec_step docker rmi -f $NAME
   fi
 
-  echo_step "Bulding a $NAME image"
+  echo_step "Bulding the $NAME image"
   exec_step docker build -t $NAME $DIR
 }
 
@@ -67,14 +67,14 @@ setup_dev_container ()
   if [[ $BUILD == $true ]]; then
     local CURRENT_ID=$(docker ps -a | grep "\s$NAME$" | awk '{print $1}')
     if [[ -z $CURRENT_ID ]]; then
-      echo_step "Running a fresh \"$NAME\" container"
+      echo_step "Running the fresh \"$NAME\" container"
       exec_step docker run $ARGS --hostname="$NAME$HOSTNAME_SUFFIX" --name="$NAME" $IMAGE
     else
-      echo_step "Starting a \"$NAME\" container"
+      echo_step "Starting the \"$NAME\" container"
       exec_step docker start $CURRENT_ID
     fi
   else
-    echo_step_info "An image \"$NAME\" is not runnable"
+    echo_step_info "The image \"$NAME\" is not runnable"
   fi
 }
 

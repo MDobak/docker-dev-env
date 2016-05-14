@@ -12,6 +12,7 @@ IMAGES_TO_RUN="images/dnsmasq-server"
 . $BASE_DIR/../src/dnsmasq.sh
 . $BASE_DIR/../src/hosts.sh
 . $BASE_DIR/../src/docker.sh
+. $BASE_DIR/../src/nfs.sh
 . $BASE_DIR/../src/config.sh
 
 # Prints Docker ASCII logo.
@@ -186,7 +187,8 @@ if [[ $SETUP_VBOX_NETWORK == $true ]]; then
 fi
 
 if [[ $SETUP_VBOX_NFS_SHARING == $true ]]; then
-  setup_vbox_nfs
+  setup_macos_nfsd $MOUNT_DIR
+  setup_docker_machine_nfs_mount $MOUNT_DIR
 fi
 
 start_docker_machine

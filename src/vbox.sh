@@ -34,6 +34,25 @@ stop_docker_machine()
    fi
 }
 
+# Restarts the Docker Machine.
+restart_docker_machine()
+{
+   if ! is_mac; then
+     return $true;
+   fi;
+
+   if [ "$(docker-machine status)" == "Running" ]; then
+     echo_step "Restarting the Docker Machine"
+     exec_step docker-machine restart
+   fi
+}
+
+vbox_host_ip ()
+{
+  local NETNAME=$(VBoxManage showvminfo default --machinereadable | grep hostonlyadapter | cut -d = -f 2 | xargs)
+  VBoxManage list hostonlyifs | grep $NETNAME -A 3 | grep IPAddress | cut -d ':' -f 2 | xargs;
+}
+
 # Adds a bridged interface at NIC3 to the Docker Machine.
 setup_vbox_network ()
 {
@@ -73,18 +92,4 @@ setup_vbox_gw ()
   else
     echo_step_skip "A gateway rule for the Docker Machine already exists"
   fi
-}
-
-# Setup a NFS sharing in the Docker Machine using the docker-machine-nfs script
-# created by Toni Van de Voorde.
-setup_vbox_nfs ()
-{
-  if ! is_mac; then
-    return $true;
-  fi;
-
-  start_docker_machine
-
-  echo_step "Configuring a NFS sharing"
-  exec_step docker-machine-nfs default --shared-folder=$MOUNT_DIR --nfs-config="-alldirs -maproot=0"
 }

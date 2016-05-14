@@ -61,6 +61,5 @@ Options:
 
 * [Docker](https://www.docker.com/)
 
-For Mac OS only:
+For the Mac OS:
 * [Docker Machine](https://docs.docker.com/machine/) 0.5.0+
-* [docker-machine-nfs](https://github.com/adlogix/docker-machine-nfs)
