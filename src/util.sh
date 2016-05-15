@@ -13,7 +13,7 @@ false=-1
 check_os_support ()
 {
   if [[ ! is_mac && ! is_linux ]]; then
-    echo_error "Unsupported operating system! Only Linux and Mac OS are supported!"
+    echo_error "Unsupported operating system! Only the Linux and Mac OS are supported!"
     exit 0;
   fi;
 }
@@ -24,12 +24,7 @@ check_requirements ()
   local IS_OK=$true;
 
   if is_mac && ! command_exists docker; then
-    echo_error "Fail: docker-machine is required for this script"
-    IS_OK=$false;
-  fi;
-
-  if is_mac && ! command_exists docker-machine-nfs; then
-    echo_error "Fail: docker-machine-nfs is required for this script"
+    echo_error "Fail: The docker-machine is required for this script"
     IS_OK=$false;
   fi;
 
@@ -116,7 +111,7 @@ echo_step_result_auto ()
     echo_step_result_ok
   else
     echo_step_result_fail
-    echo_fatal "Execute this script again with -v flag to show full logs."
+    echo_fatal "Execute this script again with -v flag to enable the verbose mode."
   fi
 }
 

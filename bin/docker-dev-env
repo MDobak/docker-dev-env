@@ -161,7 +161,7 @@ build_images ()
     fi
 
     if ! [[ -f $DIR/DevEnvConf ]]; then
-      echo_fatal "Configuration file $DIR/DevEnvConf do not exists!"
+      echo_fatal "The configuration $DIR/DevEnvConf file do not exists!"
     fi
 
     NAME=""

@@ -120,7 +120,7 @@ setup_vbox_network ()
     echo_step "Adding a bridged network card to the VirtualBox"
     exec_step VBoxManage modifyvm $DOCKER_MACHINE_NAME --nic3 bridged --bridgeadapter3 en0 --nictype3 82540EM
   else
-    echo_step_skip "The VirtualBox network interface is already configured"
+    echo_step_skip "Adding a bridged network card to the VirtualBox (already configured)"
   fi
 }
 
@@ -146,6 +146,6 @@ setup_vbox_gw ()
 
     echo_step_result_auto
   else
-    echo_step_skip "A gateway rule for the Docker Machine already exists"
+    echo_step_skip "Adding a gateway rule for the Docker Machine (already exists)"
   fi
 }

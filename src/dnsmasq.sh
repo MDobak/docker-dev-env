@@ -26,7 +26,7 @@ build_dnsmasq_config ()
 setup_host_dnsmasq ()
 {
   if ! command_exists dnsmasq; then
-    echo_step_skip "The Dnsmasq configuration was skipped beacuse is not installed on host OS"
+    echo_step_skip "Configuring the Dnsmasq for the host OS (the Dnsmasq is not installed on the host OS!)"
     return
   fi;
 
@@ -82,7 +82,7 @@ setup_containers_dnsmasq ()
     local CONTAINER_CMD="test -d /etc/dnsmasq.d && printf '$HOSTS' >> /etc/dnsmasq.d/docker-hosts.conf"
     local DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
 
-    echo_step "Configuring the Dnsmasq for a \"$VM\" machine"
+    echo_step "Configuring the Dnsmasq for the \"$VM\" container"
     eval "docker exec $VM $DOCKER_CMD"
     echo_step_result_ok
   done
@@ -127,7 +127,7 @@ setup_dnsmasq_resolv ()
     local CONTAINER_CMD="printf 'nameserver $DNSMASQ_IP' > /etc/resolv.conf"
     local DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
 
-    echo_step "Configuring the /etc/resolv.conf file for the \"$VM\" machine"
+    echo_step "Configuring the /etc/resolv.conf file for the \"$VM\" container"
     exec_cmd eval "docker exec $VM $DOCKER_CMD"
     echo_step_result_ok
   done
