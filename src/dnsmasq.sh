@@ -66,11 +66,19 @@ EOF
 
 # Sets a configuration for the Dnsmasq from the build_dnsmasq_config function
 # on the Docker containers.
+#
+# $1 - Setup only containers created by this script. $true/$false.
 setup_containers_dnsmasq ()
 {
+  local SETUP_ONLY_DEV_ENV_CONTAINERS=$1
+
   build_dnsmasq_config HOSTS
 
   for VM in `docker ps|tail -n +2|awk '{print $NF}'`; do
+    if [[ $SETUP_ONLY_DEV_ENV_CONTAINERS == $true ]] && ! is_dev_env_container $VM; then
+      continue;
+    fi
+
     local CONTAINER_CMD="test -d /etc/dnsmasq.d && printf '$HOSTS' >> /etc/dnsmasq.d/docker-hosts.conf"
     local DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
 
@@ -100,11 +108,18 @@ setup_dnsmasq_config ()
 
 # Changes a DNS IP in /etc/resolv.conf in all containers to a dnsmasq-server
 # container IP.
+#
+# $1 - Setup only containers created by this script. $true/$false.
 setup_dnsmasq_resolv ()
 {
+  local SETUP_ONLY_DEV_ENV_CONTAINERS=$1
   local DNSMASQ_IP=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' dnsmasq-server)
 
   for VM in `docker ps|tail -n +2|awk '{print $NF}'`; do
+    if [[ $SETUP_ONLY_DEV_ENV_CONTAINERS == $true ]] && ! is_dev_env_container $VM; then
+      continue;
+    fi
+
     if [[ $VM == 'dnsmasq-server' ]]; then
       continue
     fi
@@ -112,7 +127,7 @@ setup_dnsmasq_resolv ()
     local CONTAINER_CMD="printf 'nameserver $DNSMASQ_IP' > /etc/resolv.conf"
     local DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
 
-    echo_step "Configuring the /etc/resolv.conf file for a \"$VM\" machine"
+    echo_step "Configuring the /etc/resolv.conf file for the \"$VM\" machine"
     exec_cmd eval "docker exec $VM $DOCKER_CMD"
     echo_step_result_ok
   done

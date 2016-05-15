@@ -6,11 +6,15 @@
 
 _DOCKER_SH=1
 
-UTILS_BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# Checks if a container is created by this scrpt.
+#
+# $1 - A container name.
+is_dev_env_container ()
+{
+  docker exec $1 test -f /etc/docker-dev-env
 
-if ! type _UTILS_SH &> /dev/null; then
-  . $UTILS_BASE_DIR/util.sh
-fi
+  return $?
+}
 
 # Removes images and containers created by this script and rebuilds images.
 #
@@ -73,6 +77,10 @@ setup_dev_container ()
       echo_step "Starting the \"$NAME\" container"
       exec_step docker start $CURRENT_ID
     fi
+
+    # Create empty file to mark this container as created by this script.
+    exec_cmd docker exec $CURRENT_ID touch /etc/docker-dev-env
+
   else
     echo_step_info "The image \"$NAME\" is not runnable"
   fi

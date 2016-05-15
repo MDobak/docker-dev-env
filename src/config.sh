@@ -25,6 +25,7 @@ VERBOSE=0
 # Indicates if the help message will be shown
 SHOW_HELP=$false
 
+SETUP_ONLY_DEV_ENV_CONTAINERS=$true
 SETUP_VBOX_NETWORK=$true
 SETUP_VBOX_NFS_SHARING=$true
 SETUP_CONTAINERS_HOSTS=$true

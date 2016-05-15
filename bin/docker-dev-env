@@ -38,19 +38,20 @@ show_help ()
   echo
   echo 'Options:'
   echo
-  echo '-h, --help                        Print help message.'
-  echo '-v, --verbose                     Run with a lot of debugging output.'
-  echo '-m, --mount-dir <dir>             The directory where a NFS folder will be mount.'
-  echo '-H, --hostname-suffix <suffix>    The suffix appended to hostnames. Default value: ".loc".'
-  echo '-d, --docker-machine <name>       Name of the Docker Machine. Default value: "default"'
-  echo '--setup-vbox-net <flag>           Configure the VirtualBox bridged network. Enabled by default.'
-  echo '--setup-vbox-nfs-sharing <flag>   Configure the VirtualBox NFS. Enabled by default.'
-  echo '--setup-containers-host <flag>    Configure the /etc/hosts file configuration on containers. Enabled by default.'
-  echo '--setup-containers-dnsmasq <flag> Configure the Dnsmasq on containers. Disabled by default .'
-  echo '--setup-hosts <flag>              Configure the /etc/hosts file configuration on the host OS. Disabled by default.'
-  echo '--setup-dnsmasq <flag>            Configure the Dnsmasq on the host OS. Enabled by default.'
+  echo '-h, --help                         Print help message.'
+  echo '-v, --verbose                      Run with a lot of debugging output.'
+  echo '-m, --mount-dir <dir>              The directory where a NFS folder will be mount.'
+  echo '-H, --hostname-suffix <suffix>     The suffix appended to hostnames. Default value: ".loc".'
+  echo '-d, --docker-machine <name>        Name of the Docker Machine. Default value: "default"'
+  echo '--dev-env-only <flag>              Prevents any actions on containers not created by this script. Enabled by default.'
+  echo '--setup-vbox-net <flag>            Configure the VirtualBox bridged network. Enabled by default.'
+  echo '--setup-vbox-nfs-sharing <flag>    Configure the VirtualBox NFS. Enabled by default.'
+  echo '--setup-containers-host <flag>     Configure the /etc/hosts file configuration on containers. Enabled by default.'
+  echo '--setup-containers-dnsmasq <flag>  Configure the Dnsmasq on containers. Disabled by default .'
+  echo '--setup-hosts <flag>               Configure the /etc/hosts file configuration on the host OS. Disabled by default.'
+  echo '--setup-dnsmasq <flag>             Configure the Dnsmasq on the host OS. Enabled by default.'
   echo
-  echo '<flag> - Binary value, 0 or 1.'
+  echo '<flag> - 0 or 1.'
   echo
 
   exit 0
@@ -89,6 +90,10 @@ parse_args ()
     elif [[ $ARG == "-d" || $ARG == "--docker-machine" ]]; then
       shift
       DOCKER_MACHINE_NAME=$1
+    elif [[ $ARG == "--dev-env-only" ]]; then
+      shift
+      parse_binary_arg $1
+      SETUP_ONLY_DEV_ENV_CONTAINERS=$?
     elif [[ $ARG == "--setup-vbox-net" ]]; then
       shift
       parse_binary_arg $1
@@ -201,11 +206,11 @@ fi
 build_images $MOUNT_DIR $@
 
 if [[ $SETUP_CONTAINERS_DNSMASQ == $true ]]; then
-  setup_containers_dnsmasq
+  setup_containers_dnsmasq $SETUP_ONLY_DEV_ENV_CONTAINERS
 fi
 
 if [[ $SETUP_CONTAINERS_HOSTS == $true ]]; then
-  setup_containers_host_files
+  setup_containers_host_files $SETUP_ONLY_DEV_ENV_CONTAINERS
 fi
 
 if [[ $SETUP_HOST_DNSMASQ == $true ]]; then
@@ -217,7 +222,7 @@ if [[ $SETUP_HOST_HOSTS == $true ]]; then
 fi
 
 setup_dnsmasq_config
-setup_dnsmasq_resolv
+setup_dnsmasq_resolv $SETUP_ONLY_DEV_ENV_CONTAINERS
 
 docker_remove_untagged_images
 

@@ -43,18 +43,20 @@ Usage: ./docker-dev-env [OPTIONS] [DIRECTORIES...]
 
 Options:
 
--h, --help                        Print help message.
--v, --verbose                     Run with a lot of debugging output.
--m, --mount-dir <dir>             The directory where a NFS folder will be mount.
--H, --hostname-suffix <suffix>    The suffix appended to hostnames. Default ".loc".
---setup-vbox-net <flag>           Configure the VirtualBox bridged network. Default enabled.
---setup-vbox-nfs-sharing <flag>   Configure the VirtualBox NFS. Default enabled.
---setup-containers-host <flag>    Configure the /etc/hosts file configuration on containers. Default enabled.
---setup-containers-dnsmasq <flag> Configure the Dnsmasq on containers. Default disabled.
---setup-hosts <flag>              Configure the /etc/hosts file configuration on the host OS. Default disabled.
---setup-dnsmasq <flag>            Configure the Dnsmasq on the host OS. Default enabled.
+-h, --help                         Print help message.
+-v, --verbose                      Run with a lot of debugging output.
+-m, --mount-dir <dir>              The directory where a NFS folder will be mount.
+-H, --hostname-suffix <suffix>     The suffix appended to hostnames. Default value: ".loc".
+-d, --docker-machine <name>        Name of the Docker Machine. Default value: "default"
+--dev-env-only <flag>              Prevents any actions on containers not created by this script. Enabled by default.
+--setup-vbox-net <flag>            Configure the VirtualBox bridged network. Enabled by default.
+--setup-vbox-nfs-sharing <flag>    Configure the VirtualBox NFS. Enabled by default.
+--setup-containers-host <flag>     Configure the /etc/hosts file configuration on containers. Enabled by default.
+--setup-containers-dnsmasq <flag>  Configure the Dnsmasq on containers. Disabled by default .
+--setup-hosts <flag>               Configure the /etc/hosts file configuration on the host OS. Disabled by default.
+--setup-dnsmasq <flag>             Configure the Dnsmasq on the host OS. Enabled by default.
 
-<flag> - Binary value, 0 or 1.
+<flag> - 0 or 1.
 ```
 
 ## Requirements
