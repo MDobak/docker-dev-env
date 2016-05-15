@@ -1,40 +1,43 @@
 # docker-dev-env
 
-This shell script is intended to simplify creation of a development environments in the Docker especially on the Mac OS. This script does not do much on the Linux but is compatible because this is just convenient for me to use the same script on both OSes as long as I work on both OSes.
+This shell script is intended to simplify creation of a development environments in the Docker especially on the Mac OS. This script does not do much on the Linux but is compatible because this is just convenient for me to use the same script on both OSes.
 
 ## What this script does?
 
 * Configures the Dnsmasq to resolve containers hostnames.
 * Adds containers hostnames to the /etc/hosts file in all running containers.
-* Mac OS: Configures a network bridge in the VirtualBox and adds gateway route on the host OS to expose containers IPs (172.\*) for the host OS.
-* Mac OS: [Configures shared folders using a NFS protocol](https://github.com/adlogix/docker-machine-nfs) (works faster than the default vboxsf)
+* Mac OS: Configures a network bridge in the VirtualBox and adds a gateway route on the host OS to expose containers IPs (172.\*) for the host OS.
+* Mac OS: Configures shared folders using NFS protocol (works a lot faster than the default vboxsf)
 
 ![](script.gif)
 
 ## How to use?
 
-To create new development environment you need to create a `DevEnvFile` file with configuration of your container. The `DevEnvFile` is regular shell script with at least two variables:
-* `NAME` - The name is used as a container name and a hostname. The hostname is suffixed with ".loc". You can change this suffix using script's options.
-* `ARGS` - Arguments for the Docker's run command. You can provide special argument `--build-only` to prevent an image from run. It can be useful if you use some images as templates.
-* `IMAGE` - (optional) An image used to build a container. By default value from a `$NAME` variable is used.
+To create new development environment you need to create a `DevEnvConf` file with configuration for your container. The `DevEnvConf` is regular shell script with few variables:
+* `NAME` - The name for your container.
+* `ARGS` - Arguments for the Docker's run command. You can provide the special argument `--build-only` to prevent an image from run. It can be useful if you use some images as templates.
+* `IMAGE` - (optional) An image used to build a container. By default value from the `$NAME` variable is used.
+* `HOSTNAME` - (optional) Container host name. By default value from the `$NAME` variable is used.
 
-If you create the `Dockerfile` file in the same folder as your `DevEnvFile`, a image will be built automatically. The name of the image will be the same as the name of the container (from the `$NAME` variable).
 
-The simple `DevEnvFile` file could look like this:
+If you create the `Dockerfile` file in the same folder as your `DevEnvConf`, an image will be built automatically. The name of the image will be the same as the name of the container.
+
+The simple `DevEnvConf` file could look like this:
 ```bash
 #!/bin/bash
 
 NAME="example-php5"
 ARGS="-tdi -v $MOUNT_DIR/www:/var/www/html"
+HOSTNAME="example-php5.loc"
 ```
 
-Note that all volumes should me mounted under the `$MOUNT_DIR` directory.
+Note that all volumes should me mounted under the `$MOUNT_DIR` directory!
 
-To start your machines you need to run the `./bin/docker-dev-env` script and provide paths to directories containing the `Dockerfile` file and the `DevEnvFile` file as arguments. For example:
+To start your machines you need to run the `./bin/docker-dev-env` script and provide paths to directories containing the `DevEnvCOnf` file. For example:
 
 `./bin/docker-dev-env images/example-php5 images/example-mysql`
 
-Now, an `example-php5` and an `example-mysql` containers will be accessible through an `example-php5.loc` and an `example-mysql.loc` domains. Because domains are configured by the Dnsmasq service you can also use subdomains (e.g. `www.website.php5-server.loc`). Subdomains are also supported on your containers.
+Now, the `example-php5` container will be accessible through the `example-php5.loc` domain.
 
 ## Options
 

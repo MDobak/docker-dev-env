@@ -15,8 +15,10 @@ build_dnsmasq_config ()
   local _HOSTS="";
 
   for VM in `docker ps|tail -n +2|awk '{print $NF}'`; do
-      IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' $VM`;
-      _HOSTS="${_HOSTS}address=/$VM$HOSTNAME_SUFFIX/$IP\\\\n";
+    local IP=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' $VM);
+    local HOSTNAME=$(docker inspect --format '{{ .Config.Hostname }}' $VM);
+
+    _HOSTS="${_HOSTS}address=/$HOSTNAME/$IP\\\\n";
   done
 
   eval "$1=\$_HOSTS"

@@ -13,10 +13,6 @@ MACOS_MOUNT_DIR=$HOME/Work/Volumes
 # Docker Machine name
 DOCKER_MACHINE_NAME=default
 
-# A domain used for the Docker Machines in the Dnsmasq configuration and
-# the /etc/hosts file
-HOSTNAME_SUFFIX=".loc"
-
 # Verbose level
 # 0 - no verbose
 # 1 - show full commands output

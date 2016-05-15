@@ -41,7 +41,6 @@ show_help ()
   echo '-h, --help                         Print help message.'
   echo '-v, --verbose                      Run with a lot of debugging output.'
   echo '-m, --mount-dir <dir>              The directory where a NFS folder will be mount.'
-  echo '-H, --hostname-suffix <suffix>     The suffix appended to hostnames. Default value: ".loc".'
   echo '-d, --docker-machine <name>        Name of the Docker Machine. Default value: "default"'
   echo '--dev-env-only <flag>              Prevents any actions on containers not created by this script. Enabled by default.'
   echo '--setup-vbox-net <flag>            Configure the VirtualBox bridged network. Enabled by default.'
@@ -84,9 +83,6 @@ parse_args ()
     elif [[ $ARG == "-m" || $ARG == "--mount-dir" ]]; then
       shift
       MOUNT_DIR=$1
-    elif [[ $ARG == "-H" || $ARG == "--hostname-suffix" ]]; then
-      shift
-      HOSTNAME_SUFFIX=$1
     elif [[ $ARG == "-d" || $ARG == "--docker-machine" ]]; then
       shift
       DOCKER_MACHINE_NAME=$1
@@ -164,9 +160,10 @@ build_images ()
       echo_fatal "The configuration $DIR/DevEnvConf file do not exists!"
     fi
 
-    NAME=""
-    ARGS=""
-    IMAGE=""
+    local NAME=""
+    local ARGS=""
+    local IMAGE=""
+    local HOSTNAME=""
 
     . $DIR/DevEnvConf
 
@@ -174,7 +171,11 @@ build_images ()
       IMAGE=$NAME
     fi
 
-    setup_dev_container "$NAME" "$DIR" $IMAGE $ARGS
+    if [[ -z $HOSTNAME ]]; then
+      HOSTNAME=$NAME
+    fi
+
+    setup_dev_container $NAME $HOSTNAME "$DIR" $IMAGE $ARGS
   done
 }
 

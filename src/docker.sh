@@ -45,12 +45,15 @@ docker_dev_container_rebuild ()
 # existing one. Containers will have the same name as an image.
 #
 # $1 - An image name.
-# $2 - A Dockerfile directory.
+# $2 - Hostname.
+# $3 - A Dockerfile directory.
+# $4 - Image name to build if container does not exists.
 setup_dev_container ()
 {
   local NAME=$1
-  local DIR=$2
-  local IMAGE=$3
+  local HOSTNAME=$2
+  local DIR=$3
+  local IMAGE=$4
   local BUILD=$true
   local ARGS=""
 
@@ -72,7 +75,7 @@ setup_dev_container ()
     local CURRENT_ID=$(docker ps -a | grep "\s$NAME$" | awk '{print $1}')
     if [[ -z $CURRENT_ID ]]; then
       echo_step "Running the fresh \"$NAME\" container"
-      exec_step docker run $ARGS --hostname="$NAME$HOSTNAME_SUFFIX" --name="$NAME" $IMAGE
+      exec_step docker run $ARGS --hostname="$HOSTNAME" --name="$NAME" $IMAGE
     else
       echo_step "Starting the \"$NAME\" container"
       exec_step docker start $CURRENT_ID
