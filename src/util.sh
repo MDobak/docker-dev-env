@@ -170,9 +170,7 @@ exec_cmd ()
 {
   case $VERBOSE in
     0)
-      LAST_CMD="$@"
-      LAST_ERROR=$($@ 2>&1 >/dev/null)
-      ;;
+      $@ &> /dev/null ;;
     1)
       echo "Exec: $@"; "$@" ;;
   esac
@@ -212,7 +210,7 @@ sudo_prompt ()
 sudo_wrapper ()
 {
   sudo -k
-  echo "$ROOT_PASSWORD" | sudo -S -p "" -s "$@"
+  echo "$ROOT_PASSWORD" | sudo -S -p "" -s -- "$@"
 }
 
 # Checks if current OS is a Linux.

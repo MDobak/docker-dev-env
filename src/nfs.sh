@@ -73,22 +73,20 @@ setup_docker_machine_nfs_mount ()
     MOUNT_OPTIONS="noacl,async"
   fi
 
-  local BOOTLOCAL_FILE='#/bin/bash
-sudo umount /Users
-sudo mkdir -p '$MOUNT_DIR'
-sudo /usr/local/etc/init.d/nfs-client start
+  local BOOTLOCAL_FILE='#/bin/bash\n
+sudo umount /Users\n
+sudo mkdir -p '$MOUNT_DIR'\n
+sudo /usr/local/etc/init.d/nfs-client start\n
 sudo mount -t nfs -o '$MOUNT_OPTIONS' '$HOST_IP':'$MOUNT_DIR' '$MOUNT_DIR
 
   echo_step "Configuring NFS sharing on the Docker Machine"
-  exec_cmd docker-machine ssh $DOCKER_MACHINE_NAME "echo '$BOOTLOCAL_FILE' | sudo tee /var/lib/boot2docker/bootlocal.sh && sudo chmod +x /var/lib/boot2docker/bootlocal.sh"
+  exec_step docker-machine ssh $DOCKER_MACHINE_NAME "echo -e '$BOOTLOCAL_FILE' | sudo tee /var/lib/boot2docker/bootlocal.sh && sudo chmod +x /var/lib/boot2docker/bootlocal.sh"
 
   if ! is_nfs_mounted $DOCKER_MACHINE_NAME $MOUNT_DIR; then
-    exec_cmd docker-machine restart $DOCKER_MACHINE_NAME
+    restart_docker_machine $DOCKER_MACHINE_NAME
   fi
 
-  if is_nfs_mounted $DOCKER_MACHINE_NAME $MOUNT_DIR; then
-    echo_step_result_ok
-  else
-    echo_step_result_fail
+  if ! is_nfs_mounted $DOCKER_MACHINE_NAME $MOUNT_DIR; then
+    echo_fatal "Configuration of NFS sharing failed!\n  Execute this script again with -v flag to enable the verbose mode."
   fi
 }

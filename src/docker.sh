@@ -57,7 +57,7 @@ setup_dev_container ()
   local BUILD=$true
   local ARGS=""
 
-  shift 3
+  shift 4
 
   for ARG in $@; do
     if [[ $ARG == '--build-only' ]]; then
@@ -82,7 +82,7 @@ setup_dev_container ()
     fi
 
     # Create empty file to mark this container as created by this script.
-    exec_cmd docker exec $CURRENT_ID touch /etc/docker-dev-env
+    exec_cmd docker exec $NAME touch /etc/docker-dev-env
 
   else
     echo_step_info "The image \"$NAME\" is marked as not runnable"
