@@ -56,11 +56,11 @@ setup_host_dnsmasq ()
       dscacheutil -flushcache
       sudo_wrapper killall -HUP mDNSResponder
   elif is_linux; then
-    sudo_wrapper -s -- <<EOF
+    sudo_wrapper "
       grep -q "^conf-dir=/etc/dnsmasq.d$" /etc/dnsmasq.conf || echo "conf-dir=/etc/dnsmasq.d" >> /etc/dnsmasq.conf
       printf $HOSTS > /etc/dnsmasq.d/docker-hosts.conf
       service dnsmasq restart
-EOF
+    "
   fi
 
   echo_step_result_ok

@@ -2,3 +2,4 @@
 
 NAME="example-php5"
 ARGS="-tdi -v $MOUNT_DIR/www:/var/www/html"
+HOSTNAME="$NAME.loc"
