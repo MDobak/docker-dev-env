@@ -177,7 +177,7 @@ exec_cmd ()
     0)
       $@ &> /dev/null ;;
     1)
-      echo "Exec: $@"; "$@" ;;
+      echo -e "\033[0;34mExec (user) \033[0m$ $@"; "$@" ;;
   esac
 }
 
@@ -217,7 +217,7 @@ sudo_prompt ()
 sudo_wrapper ()
 {
   if [[ $VERBOSE == 1 ]]; then
-    echo "ROOT exec: $@"
+    echo -e "\033[0;31mExec (root) \033[0m$ $@"
   fi
 
   sudo -k
