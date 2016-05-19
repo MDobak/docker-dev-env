@@ -210,7 +210,7 @@ sudo_prompt ()
 sudo_wrapper ()
 {
   sudo -k
-  echo "$ROOT_PASSWORD" | sudo -S -p "" -s -- "$@"
+  echo "$ROOT_PASSWORD" | sudo -S -p "" -s -- /bin/bash -c "$@"
 }
 
 # Checks if current OS is a Linux.
