@@ -75,7 +75,12 @@ setup_dev_container ()
     local CURRENT_ID=$(docker ps -a | grep "\s$NAME$" | awk '{print $1}')
     if [[ -z $CURRENT_ID ]]; then
       echo_step "Running the fresh \"$NAME\" container"
-      exec_step docker run $ARGS --hostname="$HOSTNAME" --name="$NAME" $IMAGE
+      exec_step docker run $ARGS \
+        --hostname="$HOSTNAME" \
+        --name="$NAME" \
+        -e "DEV_NAME=$NAME" \
+        -e "DEV_HOSTNAME=$HOSTNAME" \
+        $IMAGE
     else
       echo_step "Starting the \"$NAME\" container"
       exec_step docker start $CURRENT_ID

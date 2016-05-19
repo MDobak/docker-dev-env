@@ -16,9 +16,14 @@ build_dnsmasq_config ()
 
   for VM in `docker ps|tail -n +2|awk '{print $NF}'`; do
     local IP=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' $VM);
-    local HOSTNAME=$(docker inspect --format '{{ .Config.Hostname }}' $VM);
 
-    _HOSTS="${_HOSTS}address=/$HOSTNAME/$IP\\\\n";
+    if [[ -z $(docker inspect --format '{{ .Config.Domainname }}' $VM 2> /dev/null) ]]; then
+      local HOSTNAME=$(docker inspect --format '{{ .Config.Hostname }}' $VM);
+    else
+      local HOSTNAME=$(docker inspect --format '{{ .Config.Hostname }}.{{ .Config.Domainname }}' $VM);
+    fi
+
+    _HOSTS="${_HOSTS}address=/$HOSTNAME/$IP\\n";
   done
 
   eval "$1=\$_HOSTS"
@@ -39,17 +44,17 @@ setup_host_dnsmasq ()
   if is_mac; then
     if [[ -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then
       sudo_wrapper "
-        mkdir -p $(brew --prefix dnsmasq)/etc/dnsmasq.d
-        printf $HOSTS > $(brew --prefix dnsmasq)/etc/dnsmasq.d/docker-hosts.conf
-        launchctl unload /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist
-        launchctl load /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist
+        mkdir -p $(brew --prefix dnsmasq)/etc/dnsmasq.d;
+        printf '$HOSTS' > $(brew --prefix dnsmasq)/etc/dnsmasq.d/docker-hosts.conf;
+        launchctl unload /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist;
+        launchctl load /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist;
       "
     elif [[ -f /Library/LaunchDaemons/org.macports.dnsmasq.plist ]]; then
       sudo_wrapper "
-        mkdir -p /opt/local/etc/dnsmasq.d
-        printf $HOSTS > /opt/local/etc/dnsmasq.d/docker-hosts.conf
-        launchctl unload /Library/LaunchDaemons/org.macports.dnsmasq.plist
-        launchctl load /Library/LaunchDaemons/org.macports.dnsmasq.plist
+        mkdir -p /opt/local/etc/dnsmasq.d;
+        printf '$HOSTS' > /opt/local/etc/dnsmasq.d/docker-hosts.conf;
+        launchctl unload /Library/LaunchDaemons/org.macports.dnsmasq.plist;
+        launchctl load /Library/LaunchDaemons/org.macports.dnsmasq.plist;
       "
     fi
 
@@ -57,9 +62,9 @@ setup_host_dnsmasq ()
       sudo_wrapper killall -HUP mDNSResponder
   elif is_linux; then
     sudo_wrapper "
-      grep -q "^conf-dir=/etc/dnsmasq.d$" /etc/dnsmasq.conf || echo "conf-dir=/etc/dnsmasq.d" >> /etc/dnsmasq.conf
-      printf $HOSTS > /etc/dnsmasq.d/docker-hosts.conf
-      service dnsmasq restart
+      grep -q \"^conf-dir=/etc/dnsmasq.d$\" /etc/dnsmasq.conf || echo \"conf-dir=/etc/dnsmasq.d\" >> /etc/dnsmasq.conf;
+      printf '$HOSTS' > /etc/dnsmasq.d/docker-hosts.conf;
+      service dnsmasq restart;
     "
   fi
 
