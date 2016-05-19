@@ -94,11 +94,11 @@ parse_args ()
       shift
       parse_binary_arg $1
       SETUP_ONLY_DEV_ENV_CONTAINERS=$?
-    elif [[ is_mac && $ARG == "--setup-vbox-net" ]]; then
+    elif is_mac && [[ $ARG == "--setup-vbox-net" ]]; then
       shift
       parse_binary_arg $1
       SETUP_VBOX_NETWORK=$?
-    elif [[ is_mac && $ARG == "--setup-nfs-sharing" ]]; then
+    elif is_mac && [[ $ARG == "--setup-nfs-sharing" ]]; then
       shift
       parse_binary_arg $1
       SETUP_VBOX_NFS_SHARING=$?
@@ -200,12 +200,12 @@ if is_mac; then
   regenerate_docker_machine_certs $DOCKER_MACHINE_NAME
 fi
 
-if [[ is_mac && $SETUP_VBOX_NETWORK == $true ]]; then
+if is_mac && [[ $SETUP_VBOX_NETWORK == $true ]]; then
   setup_vbox_network $DOCKER_MACHINE_NAME
   setup_vbox_gw $DOCKER_MACHINE_NAME
 fi
 
-if [[ is_mac && $SETUP_VBOX_NFS_SHARING == $true ]]; then
+if is_mac && [[ $SETUP_VBOX_NFS_SHARING == $true ]]; then
   setup_macos_nfsd $DOCKER_MACHINE_NAME $MOUNT_DIR
   setup_docker_machine_nfs_mount $DOCKER_MACHINE_NAME $MOUNT_DIR
 fi
