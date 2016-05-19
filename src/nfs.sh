@@ -46,13 +46,11 @@ setup_macos_nfsd ()
 
   echo_step "Configuring NFS sharing on the host OS"
 
-  sudo_wrapper '
-    sed "/^'$ESCAPED_MOUNT_DIR' '$IP'/d" /etc/exports > /etc/exports
-    printf "\n'$MOUNT_DIR' '$IP' '$NFS_CONFIG'\n" >> /etc/exports
-  '
+  sudo_wrapper "sed \"/^$ESCAPED_MOUNT_DIR $IP/d\" /etc/exports > /etc/exports"
+  sudo_wrapper "printf \"\n$MOUNT_DIR $IP $NFS_CONFIG\n\" >> /etc/exports"
 
-  sudo_wrapper nfsd restart
-  sudo_wrapper nfsd checkexports
+  sudo_wrapper "nfsd restart"
+  sudo_wrapper "nfsd checkexports"
 
   echo_step_result_ok
 }

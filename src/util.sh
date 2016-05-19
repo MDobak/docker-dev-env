@@ -23,8 +23,13 @@ check_requirements ()
 {
   local IS_OK=$true;
 
-  if is_mac && ! command_exists docker; then
-    echo_error "Fail: The docker-machine is required for this script"
+  if is_mac && ! command_exists docker-machine; then
+    echo_error "Fail: The Docker Machine is required for this script"
+    IS_OK=$false;
+  fi;
+
+  if ! command_exists docker; then
+    echo_error "Fail: The Docker is required for this script"
     IS_OK=$false;
   fi;
 
@@ -187,7 +192,8 @@ command_exists ()
 # Asks a user for the root password and store it in the ROOT_PASSWORD variable.
 sudo_prompt ()
 {
-  local IS_ROOT=$(sudo_wrapper whoami 2> /dev/null)
+  sudo -k
+  local IS_ROOT=$(echo "$ROOT_PASSWORD" | sudo -S -p "" -s -- whoami 2> /dev/null)
 
   if [[ $IS_ROOT != "root" ]]; then
     echo_warn "The root is required to run some commands in this script:"
@@ -198,7 +204,8 @@ sudo_prompt ()
     read -s ROOT_PASSWORD
     echo "***"
 
-    IS_ROOT=$(sudo_wrapper whoami 2> /dev/null)
+    sudo -k
+    IS_ROOT=$(echo "$ROOT_PASSWORD" | sudo -S -p "" -s -- whoami 2> /dev/null)
   done
 
   echo
@@ -209,8 +216,12 @@ sudo_prompt ()
 # $@ - Commands to execute.
 sudo_wrapper ()
 {
+  if [[ $VERBOSE == 1 ]]; then
+    echo "ROOT exec: $@"
+  fi
+
   sudo -k
-  echo "$ROOT_PASSWORD" | sudo -S -p "" -s -- /bin/bash -c "$@"
+  echo "$ROOT_PASSWORD" | sudo -S -p "" -- /bin/bash -c "$@"
 }
 
 # Checks if current OS is a Linux.

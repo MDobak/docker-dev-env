@@ -43,29 +43,23 @@ setup_host_dnsmasq ()
 
   if is_mac; then
     if [[ -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then
-      sudo_wrapper "
-        mkdir -p $(brew --prefix dnsmasq)/etc/dnsmasq.d;
-        printf '$HOSTS' > $(brew --prefix dnsmasq)/etc/dnsmasq.d/docker-hosts.conf;
-        launchctl unload /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist;
-        launchctl load /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist;
-      "
+      sudo_wrapper "mkdir -p $(brew --prefix dnsmasq)/etc/dnsmasq.d"
+      sudo_wrapper "printf \"$HOSTS\" > $(brew --prefix dnsmasq)/etc/dnsmasq.d/docker-hosts.conf"
+      sudo_wrapper "launchctl unload /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist"
+      sudo_wrapper "launchctl load /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist"
     elif [[ -f /Library/LaunchDaemons/org.macports.dnsmasq.plist ]]; then
-      sudo_wrapper "
-        mkdir -p /opt/local/etc/dnsmasq.d;
-        printf '$HOSTS' > /opt/local/etc/dnsmasq.d/docker-hosts.conf;
-        launchctl unload /Library/LaunchDaemons/org.macports.dnsmasq.plist;
-        launchctl load /Library/LaunchDaemons/org.macports.dnsmasq.plist;
-      "
+      sudo_wrapper "mkdir -p /opt/local/etc/dnsmasq.d"
+      sudo_wrapper "printf \"$HOSTS\" > /opt/local/etc/dnsmasq.d/docker-hosts.conf"
+      sudo_wrapper "launchctl unload /Library/LaunchDaemons/org.macports.dnsmasq.plist"
+      sudo_wrapper "launchctl load /Library/LaunchDaemons/org.macports.dnsmasq.plist"
     fi
 
-      dscacheutil -flushcache
-      sudo_wrapper killall -HUP mDNSResponder
+    dscacheutil -flushcache
+    sudo_wrapper "killall -HUP mDNSResponder"
   elif is_linux; then
-    sudo_wrapper "
-      grep -q \"^conf-dir=/etc/dnsmasq.d$\" /etc/dnsmasq.conf || echo \"conf-dir=/etc/dnsmasq.d\" >> /etc/dnsmasq.conf;
-      printf '$HOSTS' > /etc/dnsmasq.d/docker-hosts.conf;
-      service dnsmasq restart;
-    "
+    sudo_wrapper "grep -q \"^conf-dir=/etc/dnsmasq.d$\" /etc/dnsmasq.conf || echo \"conf-dir=/etc/dnsmasq.d\" >> /etc/dnsmasq.conf"
+    sudo_wrapper "printf \"$HOSTS\" > /etc/dnsmasq.d/docker-hosts.conf"
+    sudo_wrapper "service dnsmasq restart"
   fi
 
   echo_step_result_ok

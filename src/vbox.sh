@@ -28,10 +28,6 @@ start_docker_machine ()
 {
   local DOCKER_MACHINE_NAME=$1
 
-  if ! is_mac; then
-    return $true;
-  fi;
-
   if ! is_docker_machine_running $DOCKER_MACHINE_NAME; then
     echo_step "Starting the Docker Machine"
     exec_step docker-machine start $DOCKER_MACHINE_NAME
@@ -47,10 +43,6 @@ stop_docker_machine ()
 {
   local DOCKER_MACHINE_NAME=$1
 
-  if ! is_mac; then
-    return $true;
-  fi;
-
   if is_docker_machine_running $DOCKER_MACHINE_NAME; then
     echo_step "Stopping the Docker Machine"
     exec_step docker-machine stop $DOCKER_MACHINE_NAME
@@ -63,10 +55,6 @@ stop_docker_machine ()
 restart_docker_machine ()
 {
   local DOCKER_MACHINE_NAME=$1
-
-  if ! is_mac; then
-    return $true;
-  fi;
 
   if is_docker_machine_running $DOCKER_MACHINE_NAME; then
     echo_step "Restarting the Docker Machine"
@@ -108,10 +96,6 @@ setup_vbox_network ()
 {
   local DOCKER_MACHINE_NAME=$1
 
-  if ! is_mac; then
-    return $true;
-  fi;
-
   if ! VBoxManage showvminfo $DOCKER_MACHINE_NAME | grep -q "NIC 3:.*Bridged Interface"; then
     if is_docker_machine_running $DOCKER_MACHINE_NAME; then
       stop_docker_machine $DOCKER_MACHINE_NAME
@@ -132,17 +116,13 @@ setup_vbox_gw ()
 {
   local DOCKER_MACHINE_NAME=$1
 
-  if ! is_mac; then
-    return $true;
-  fi;
-
   start_docker_machine $DOCKER_MACHINE_NAME
 
   if ! netstat -rn | grep -q "^172.17/24\s*$(docker-machine ip $DOCKER_MACHINE_NAME)"; then
     echo_step "Adding a gateway rule for the Docker Machine"
 
-    exec_cmd sudo_wrapper route -n delete 172.17.0.0/24
-    exec_cmd sudo_wrapper route add 172.17.0.0/24 $(docker-machine ip $DOCKER_MACHINE_NAME)
+    exec_cmd sudo_wrapper "route -n delete 172.17.0.0/24"
+    exec_cmd sudo_wrapper "route add 172.17.0.0/24 $(docker-machine ip $DOCKER_MACHINE_NAME)"
 
     echo_step_result_auto
   else
