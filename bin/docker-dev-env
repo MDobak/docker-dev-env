@@ -43,8 +43,12 @@ show_help ()
   echo '-m, --mount-dir <dir>              The directory where a NFS folder will be mount.'
   echo '-d, --docker-machine <name>        Name of the Docker Machine. Default value: "default"'
   echo '--dev-env-only <flag>              Prevents any actions on containers not created by this script. Enabled by default.'
-  echo '--setup-vbox-net <flag>            Configure the VirtualBox bridged network. Enabled by default.'
-  echo '--setup-vbox-nfs-sharing <flag>    Configure the VirtualBox NFS. Enabled by default.'
+
+  if is_mac; then
+    echo '--setup-vbox-net <flag>            Configure the VirtualBox bridged network. Enabled by default.'
+    echo '--setup-nfs-sharing <flag>         Configure the VirtualBox NFS. Enabled by default.'
+  fi
+
   echo '--setup-containers-host <flag>     Configure the /etc/hosts file configuration on containers. Enabled by default.'
   echo '--setup-containers-dnsmasq <flag>  Configure the Dnsmasq on containers. Disabled by default .'
   echo '--setup-hosts <flag>               Configure the /etc/hosts file configuration on the host OS. Disabled by default.'
@@ -90,11 +94,11 @@ parse_args ()
       shift
       parse_binary_arg $1
       SETUP_ONLY_DEV_ENV_CONTAINERS=$?
-    elif [[ $ARG == "--setup-vbox-net" ]]; then
+    elif [[ is_mac && $ARG == "--setup-vbox-net" ]]; then
       shift
       parse_binary_arg $1
       SETUP_VBOX_NETWORK=$?
-    elif [[ $ARG == "--setup-nfs-sharing" ]]; then
+    elif [[ is_mac && $ARG == "--setup-nfs-sharing" ]]; then
       shift
       parse_binary_arg $1
       SETUP_VBOX_NFS_SHARING=$?
@@ -191,15 +195,17 @@ check_os_support
 check_requirements
 setup_mount_dir MOUNT_DIR
 
-start_docker_machine $DOCKER_MACHINE_NAME
-regenerate_docker_machine_certs $DOCKER_MACHINE_NAME
+if is_mac; then
+  start_docker_machine $DOCKER_MACHINE_NAME
+  regenerate_docker_machine_certs $DOCKER_MACHINE_NAME
+fi
 
-if [[ $SETUP_VBOX_NETWORK == $true ]]; then
+if [[ is_mac && $SETUP_VBOX_NETWORK == $true ]]; then
   setup_vbox_network $DOCKER_MACHINE_NAME
   setup_vbox_gw $DOCKER_MACHINE_NAME
 fi
 
-if [[ $SETUP_VBOX_NFS_SHARING == $true ]]; then
+if [[ is_mac && $SETUP_VBOX_NFS_SHARING == $true ]]; then
   setup_macos_nfsd $DOCKER_MACHINE_NAME $MOUNT_DIR
   setup_docker_machine_nfs_mount $DOCKER_MACHINE_NAME $MOUNT_DIR
 fi
