@@ -173,12 +173,11 @@ exec_step ()
 # $@ - Command to execute.
 exec_cmd ()
 {
-  case $VERBOSE in
-    0)
-      $@ &> /dev/null ;;
-    1)
-      echo -e "\033[0;34mExec (user) \033[0m$ $@"; "$@" ;;
-  esac
+  if [[ $VERBOSE == 1 ]]; then
+      echo -e "\033[0;34mExec (user) \033[0m$ $@";
+  fi
+
+  eval "$@" &> /dev/null
 }
 
 # Checks if a command exists.
@@ -221,7 +220,7 @@ sudo_wrapper ()
   fi
 
   sudo -k
-  echo "$ROOT_PASSWORD" | sudo -S -p "" -- /bin/bash -c "$@"
+  echo "$ROOT_PASSWORD" | sudo -S -p "" -- eval "$@" &> /dev/null;
 }
 
 # Checks if current OS is a Linux.
