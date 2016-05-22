@@ -14,8 +14,10 @@ check_os_support ()
 {
   if [[ ! is_mac && ! is_linux ]]; then
     echo_error "Unsupported operating system! Only the Linux and Mac OS are supported!"
-    exit 0;
+    exit -1;
   fi;
+
+  return $true;
 }
 
 # Check if required software is already instaled on current OS.
@@ -43,7 +45,7 @@ check_requirements ()
 # $1 - An error message.
 echo_error ()
 {
-  printf "\033[0;31m$1\033[0m\n"
+  printf "$CRED$1$CRESET\n"
 }
 
 # Prints a warning messages
@@ -51,7 +53,7 @@ echo_error ()
 # $1 - A warning message.
 echo_warn ()
 {
-  printf "\033[0;33m$1\033[0m\n"
+  printf "$CORANGE$1$CRESET\n"
 }
 
 # Prints a success messages
@@ -59,7 +61,7 @@ echo_warn ()
 # $1 - A success message.
 echo_success ()
 {
-  printf "\033[0;32m$1\033[0m\n"
+  printf "$CYELLOW$1$CRESET\n"
 }
 
 # Prints a fatal error message and interrupts the script execution.
@@ -85,9 +87,9 @@ echo_fatal ()
 echo_step ()
 {
   if [[ $VERBOSE == 0 ]]; then
-    printf "\033[0m[    ] \033[0;32m$1\033[0m\r"
+    printf "$CRESET[    ] $CYELLOW$1$CRESET\r"
   else
-    printf "\033[0;32m$1\033[0m\n"
+    printf "$CYELLOW$1$CRESET\n"
   fi
 }
 
@@ -95,7 +97,7 @@ echo_step ()
 echo_step_result_ok ()
 {
   if [[ $VERBOSE == 0 ]]; then
-    printf "\033[0;32m[ OK ]\n"
+    printf "$CYELLOW[ OK ]\n"
   fi
 }
 
@@ -103,7 +105,7 @@ echo_step_result_ok ()
 echo_step_result_fail ()
 {
   if [[ $VERBOSE == 0 ]]; then
-    printf "\033[0;31m[FAIL]\n"
+    printf "$CRED[FAIL]\n"
   fi
 }
 
@@ -125,7 +127,7 @@ echo_step_result_auto ()
 # $1 - A message.
 echo_step_info ()
 {
-  printf "\033[0;34m[INFO] \033[0;32m$1\033[0m\n"
+  printf "$CBLUE[INFO] $CYELLOW$1$CRESET\n"
 }
 
 # Prints a step name with the "SKIP" status.
@@ -133,7 +135,7 @@ echo_step_info ()
 # $1 - A message.
 echo_step_skip ()
 {
-  printf "\033[0;36m[SKIP] \033[0;32m$1\033[0m\n"
+  printf "$CLBLUE[SKIP] $CYELLOW$1$CRESET\n"
 }
 
 # Should be used to execute step commands after a echo_step.
@@ -154,7 +156,7 @@ exec_step ()
       local CURRENT_SPINNER=${SPINNER[${SPINNER_IDX}]}
       SPINNER_IDX=$(( ($SPINNER_IDX+1) % 8 ))
 
-      printf "\033[0m[$CURRENT_SPINNER]\r"
+      printf "$CRESET[$CURRENT_SPINNER]\r"
       sleep 0.5
     done
 
@@ -174,10 +176,11 @@ exec_step ()
 exec_cmd ()
 {
   if [[ $VERBOSE == 1 ]]; then
-      echo -e "\033[0;34mExec (user) \033[0m$ $@";
+    echo -e "${CBLUE}Exec (user) $CRESET$ $@";
+    eval "$@"
+  else
+    eval "$@" &> /dev/null
   fi
-
-  eval "$@" &> /dev/null
 }
 
 # Checks if a command exists.
@@ -216,21 +219,28 @@ sudo_prompt ()
 sudo_wrapper ()
 {
   if [[ $VERBOSE == 1 ]]; then
-    echo -e "\033[0;31mExec (root) \033[0m$ $@"
-  fi
+    echo -e "${CRED}Exec (root) $CRESET$ $@"
 
-  if [[ $EUID -eq 0 ]]; then
-    eval "$@" &> /dev/null
+    if [[ $EUID -eq 0 ]]; then
+      eval "$@"
+    else
+      sudo -k
+      echo "$ROOT_PASSWORD" | sudo -S -p "" -- /bin/bash -c "$@";
+    fi
   else
-    sudo -k
-    echo "$ROOT_PASSWORD" | sudo -S -p "" -- /bin/bash -c "$@" &> /dev/null;
+    if [[ $EUID -eq 0 ]]; then
+      eval "$@" &> /dev/null
+    else
+      sudo -k
+      echo "$ROOT_PASSWORD" | sudo -S -p "" -- /bin/bash -c "$@" &> /dev/null;
+    fi
   fi
 }
 
 # Checks if current OS is a Linux.
 is_linux ()
 {
-  if [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
+  if [[ "$(uname -s)" == "Linux" ]]; then
     return $true;
   else
     return $false;
@@ -240,7 +250,7 @@ is_linux ()
 # Checks if current OS is a Mac OS.
 is_mac ()
 {
-  if [[ "$(uname)" == "Darwin" ]]; then
+  if [[ "$(uname -s)" == "Darwin" ]]; then
     return $true;
   else
     return $false;
