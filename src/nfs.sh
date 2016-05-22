@@ -71,14 +71,14 @@ setup_docker_machine_nfs_mount ()
     MOUNT_OPTIONS="noacl,async"
   fi
 
-  local BOOTLOCAL_FILE='#/bin/bash\n
-sudo umount /Users\n
-sudo mkdir -p '$MOUNT_DIR'\n
-sudo /usr/local/etc/init.d/nfs-client start\n
+  local BOOTLOCAL_FILE='#/bin/bash
+sudo umount /Users
+sudo mkdir -p '$MOUNT_DIR'
+sudo /usr/local/etc/init.d/nfs-client start
 sudo mount -t nfs -o '$MOUNT_OPTIONS' '$HOST_IP':'$MOUNT_DIR' '$MOUNT_DIR
 
   echo_step "Configuring NFS sharing on the Docker Machine"
-  exec_step "docker-machine ssh $DOCKER_MACHINE_NAME \"echo -e '$BOOTLOCAL_FILE' | sudo tee /var/lib/boot2docker/bootlocal.sh && sudo chmod +x /var/lib/boot2docker/bootlocal.sh\""
+  exec_step "docker-machine ssh $DOCKER_MACHINE_NAME \"echo '$BOOTLOCAL_FILE' | sudo tee /var/lib/boot2docker/bootlocal.sh && sudo chmod +x /var/lib/boot2docker/bootlocal.sh\""
 
   if ! is_nfs_mounted $DOCKER_MACHINE_NAME $MOUNT_DIR; then
     restart_docker_machine $DOCKER_MACHINE_NAME
