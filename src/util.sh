@@ -219,8 +219,12 @@ sudo_wrapper ()
     echo -e "\033[0;31mExec (root) \033[0m$ $@"
   fi
 
-  sudo -k
-  echo "$ROOT_PASSWORD" | sudo -S -p "" -- eval "$@" &> /dev/null;
+  if [[ $EUID -eq 0 ]]; then
+    eval "$@" &> /dev/null
+  else
+    sudo -k
+    echo "$ROOT_PASSWORD" | sudo -S -p "" -- /bin/bash -c "$@" &> /dev/null;
+  fi
 }
 
 # Checks if current OS is a Linux.
