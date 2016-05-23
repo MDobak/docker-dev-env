@@ -145,6 +145,8 @@ echo_step_skip ()
 # $@ - A command to execute.
 exec_step ()
 {
+  local ARGS=$@
+
   if [[ $VERBOSE == 0 ]]; then
     exec_cmd "$@" &
 
@@ -175,11 +177,13 @@ exec_step ()
 # $@ - Command to execute.
 exec_cmd ()
 {
+  local ARGS="$@"
+
   if [[ $VERBOSE == 1 ]]; then
-    echo -e "${CBLUE}Exec (user) $CRESET$ $@";
-    eval "$@"
+    echo -e "${CBLUE}Exec (user) $CRESET$ $ARGS";
+    eval "$ARGS"
   else
-    eval "$@" &> /dev/null
+    eval "$ARGS" &> /dev/null
   fi
 }
 
@@ -218,22 +222,16 @@ sudo_prompt ()
 # $@ - Commands to execute.
 sudo_wrapper ()
 {
+  local ARGS="$@"
+
   if [[ $VERBOSE == 1 ]]; then
     echo -e "${CRED}Exec (root) $CRESET$ $@"
 
-    if [[ $EUID -eq 0 ]]; then
-      eval "$@"
-    else
-      sudo -k
-      echo "$ROOT_PASSWORD" | sudo -S -p "" -- /bin/bash -c "$@";
-    fi
+    sudo -k
+    echo "$ROOT_PASSWORD" | sudo -S -p "" -- /bin/bash -c "$ARGS";
   else
-    if [[ $EUID -eq 0 ]]; then
-      eval "$@" &> /dev/null
-    else
-      sudo -k
-      echo "$ROOT_PASSWORD" | sudo -S -p "" -- /bin/bash -c "$@" &> /dev/null;
-    fi
+    sudo -k
+    echo "$ROOT_PASSWORD" | sudo -S -p "" -- /bin/bash -c "$ARGS" &> /dev/null;
   fi
 }
 
