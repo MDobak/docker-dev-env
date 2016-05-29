@@ -151,23 +151,51 @@ setup_mount_dir ()
 build_images ()
 {
   local MOUNT_DIR=$1
+  local IMAGES_TO_RUN_WITH_DEPS=""
+
   shift 1
 
-  for IMAGE_DIR in $IMAGES_TO_RUN; do
-    if [[ $IMAGE_DIR == @* ]]; then
-      DIR=$BASE_DIR/../images/${IMAGE_DIR:1}
-    else
-      DIR=$IMAGE_DIR
-    fi
+  while : ; do
+    local IMAGES_TO_RUN_STR_SIZE=${#IMAGES_TO_RUN}
 
-    if ! [[ -f $DIR/DevEnvConf ]]; then
-      echo_fatal "The configuration $DIR/DevEnvConf file do not exists!"
+    for IMAGE_DIR in $IMAGES_TO_RUN; do
+      local DIR=$IMAGE_DIR
+      local REQUIRE=""
+
+      if ! [[ -f $DIR/DevEnvConf ]]; then
+        echo_fatal "The configuration $DIR/DevEnvConf file do not exists!"
+      fi
+
+      . $DIR/DevEnvConf
+
+      for DEP_IMAGE_DIR in $REQUIRE; do
+        IMAGES_TO_RUN_WITH_DEPS="$IMAGES_TO_RUN_WITH_DEPS $DIR/$DEP_IMAGE_DIR"
+      done
+
+      IMAGES_TO_RUN_WITH_DEPS="$IMAGES_TO_RUN_WITH_DEPS $IMAGE_DIR"
+      IMAGES_TO_RUN_WITH_DEPS=$( awk 'BEGIN{RS=ORS=" "}!a[$0]++' <<<$IMAGES_TO_RUN_WITH_DEPS )
+    done
+
+    IMAGES_TO_RUN=$IMAGES_TO_RUN_WITH_DEPS
+    IMAGES_TO_RUN_WITH_DEPS=""
+
+    # If the size of the $IMAGES_TO_RUN variable is same as in last time there
+    # is no new images to check.
+    if [[ $IMAGES_TO_RUN_STR_SIZE -eq ${#IMAGES_TO_RUN} ]]; then
+      break;
     fi
+  done
+
+  echo_step_info "Images to build: ${IMAGES_TO_RUN:0:${#IMAGES_TO_RUN}-2}"
+
+  for IMAGE_DIR in $IMAGES_TO_RUN; do
+    local DIR=$IMAGE_DIR
 
     local NAME=""
     local ARGS=""
     local IMAGE=""
     local HOSTNAME=""
+    local REQUIRE=""
 
     . $DIR/DevEnvConf
 
