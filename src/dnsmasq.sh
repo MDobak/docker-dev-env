@@ -127,7 +127,7 @@ setup_dnsmasq_config ()
 
   echo_step "Configuring the dnsmasq-server"
   exec_cmd docker exec dnsmasq-server /bin/sh -c \
-    "grep -q \"^conf-dir=/etc/dnsmasq.d$\" /etc/dnsmasq.conf || echo \"conf-dir=/etc/dnsmasq.d\" >> /etc/dnsmasq.conf"
+    "grep -q \"^conf-dir=/etc/dnsmasq.d$\" /etc/dnsmasq.conf || echo \"conf-dir=/etc/dnsmasq.d\" > /etc/dnsmasq.conf"
   exec_cmd docker exec dnsmasq-server mkdir -p /etc/dnsmasq.d
   exec_cmd docker stop dnsmasq-server
   exec_cmd docker start dnsmasq-server
