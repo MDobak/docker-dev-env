@@ -40,7 +40,25 @@ check_requirements ()
   fi
 }
 
-# Prints an error messages
+# Checks if script is being run by root.
+check_root ()
+{
+    if [[ $EUID -ne 0 ]]; then
+        echo_fatal "This script must be run as root!" 1>&2
+        exit 1
+    fi
+}
+
+# Check if script is being run using sudo command.
+check_sudo ()
+{
+    if [[ -z $SUDO_USER ]] && [[ $SUDO_USER != "roor" ]]; then
+        echo_fatal "This script must be run using sudo as non root user!" 1>&2
+        exit 1
+    fi
+}
+
+# Prints an error messages.
 #
 # $1 - An error message.
 echo_error ()
@@ -48,7 +66,7 @@ echo_error ()
   printf "$CRED$1$CRESET\n"
 }
 
-# Prints a warning messages
+# Prints a warning messages.
 #
 # $1 - A warning message.
 echo_warn ()
@@ -56,12 +74,22 @@ echo_warn ()
   printf "$CORANGE$1$CRESET\n"
 }
 
-# Prints a success messages
+# Prints a success messages.
 #
 # $1 - A success message.
 echo_success ()
 {
   printf "$CYELLOW$1$CRESET\n"
+}
+
+# Prints a step name withthe  "INFO" status.
+#
+# $1 - A message.
+echo_log ()
+{
+  if [[ $VERBOSE != 0 ]]; then
+    printf "$CBLUE$1\n"
+  fi
 }
 
 # Prints a fatal error message and interrupts the script execution.
@@ -70,10 +98,10 @@ echo_success ()
 echo_fatal ()
 {
   echo
-  echo_warn  "--------------------------------------------------------------------------------"
+  echo_error  "--------------------------------------------------------------------------------"
   echo_error "  Script failed!                                                              "
   echo_error "  $1"
-  echo_warn  "--------------------------------------------------------------------------------"
+  echo_error  "--------------------------------------------------------------------------------"
   echo
 
   exit -1;
@@ -122,14 +150,6 @@ echo_step_result_auto ()
   fi
 }
 
-# Prints a step name withthe  "INFO" status.
-#
-# $1 - A message.
-echo_step_info ()
-{
-  printf "$CBLUE[INFO] $CYELLOW$1$CRESET\n"
-}
-
 # Prints a step name with the "SKIP" status.
 #
 # $1 - A message.
@@ -145,29 +165,13 @@ echo_step_skip ()
 # $@ - A command to execute.
 exec_step ()
 {
-  local ARGS=$@
+  local STATUS=0
 
-  if [[ $VERBOSE == 0 ]]; then
-    exec_cmd "$@" &
+  "$@"
+  STATUS=$?
+  echo_step_result_auto
 
-    local PROC_ID=$!
-    local SPINNER=("    " ".   " "..  " "... " "...." " ..." "  .." "   .")
-    local SPINNER_IDX=0
-
-    while kill -0 "$PROC_ID" >/dev/null 2>&1; do
-      local CURRENT_SPINNER=${SPINNER[${SPINNER_IDX}]}
-      SPINNER_IDX=$(( ($SPINNER_IDX+1) % 8 ))
-
-      printf "$CRESET[$CURRENT_SPINNER]\r"
-      sleep 0.5
-    done
-
-    wait $PROC_ID
-    echo_step_result_auto
-  else
-    exec_cmd "$@"
-    echo_step_result_auto
-  fi
+  return $?
 }
 
 # Execute the command given after that function. If a $VERBOSE variables is set
@@ -175,16 +179,40 @@ exec_step ()
 # output will be printed.
 #
 # $@ - Command to execute.
-exec_cmd ()
+verbose ()
 {
-  local ARGS="$@"
+  local STATUS=0
 
   if [[ $VERBOSE == 1 ]]; then
-    echo -e "${CBLUE}Exec (user) $CRESET$ $ARGS";
-    eval "$ARGS"
+    echo -e "$CBLUE\xE2\x94\x8F $CRESET$(caller)$CRESET"
+    echo -e "$CBLUE\xE2\x94\x97 $CRESET$@$CRESET"
+
+    "$@"
+    STATUS=$?
+
+    printf "\n"
   else
-    eval "$ARGS" &> /dev/null
+    "$@" &> /dev/null
+    STATUS=$?
   fi
+
+  return $STATUS
+}
+
+run_as_user ()
+{
+  sudo -u $SUDO_USER "$@"
+
+  return $?
+}
+
+# Copy permission of one file to another.
+#
+# $1 - Source.
+# $2 - Target.
+copy_permissions ()
+{
+  chmod $( stat -f '%p' "$1" ) "${@:2}"
 }
 
 # Checks if a command exists.
@@ -193,46 +221,6 @@ exec_cmd ()
 command_exists ()
 {
   type "$1" &> /dev/null;
-}
-
-# Asks a user for the root password and store it in the ROOT_PASSWORD variable.
-sudo_prompt ()
-{
-  sudo -k
-  local IS_ROOT=$(echo "$ROOT_PASSWORD" | sudo -S -p "" -s -- whoami 2> /dev/null)
-
-  if [[ $IS_ROOT != "root" ]]; then
-    echo_warn "The root is required to run some commands in this script:"
-  fi
-
-  until [[ $IS_ROOT == "root" ]]; do
-    printf "Root password: "
-    read -s ROOT_PASSWORD
-    echo "***"
-
-    sudo -k
-    IS_ROOT=$(echo "$ROOT_PASSWORD" | sudo -S -p "" -s -- whoami 2> /dev/null)
-  done
-
-  echo
-}
-
-# Runs commands as the root using a password from the ROOT_PASSWORD variable.
-#
-# $@ - Commands to execute.
-sudo_wrapper ()
-{
-  local ARGS="$@"
-
-  if [[ $VERBOSE == 1 ]]; then
-    echo -e "${CRED}Exec (root) $CRESET$ $@"
-
-    sudo -k
-    echo "$ROOT_PASSWORD" | sudo -S -p "" -- /bin/bash -c "$ARGS";
-  else
-    sudo -k
-    echo "$ROOT_PASSWORD" | sudo -S -p "" -- /bin/bash -c "$ARGS" &> /dev/null;
-  fi
 }
 
 # Checks if current OS is a Linux.

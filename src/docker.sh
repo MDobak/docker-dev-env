@@ -26,19 +26,18 @@ docker_dev_container_rebuild ()
   local DIR=$2;
 
   if docker ps | grep -q "\s$NAME$"; then
-    echo_step "Removing the \"$NAME\" container"
     # We intentionaly finds containers based on thier name rather than an image
     # name beacuse we want remove only containers created by this script.
-    exec_step docker rm -f $(docker ps | grep "^[^\s]+\s+$NAME\s+" | awk '{print $1}')
+    docker rm -f $(docker ps | grep "^[^\s]+\s+$NAME\s+" | awk '{print $1}') > /dev/null
   fi
 
   if docker images | grep -q "^$NAME\s"; then
-    echo_step "Removing the \"$NAME\" image"
-    exec_step docker rmi -f $NAME
+    docker rmi -f $NAME > /dev/null
   fi
 
-  echo_step "Bulding the \"$NAME\" image"
-  exec_step docker build -t $NAME $DIR
+  verbose docker build -t $NAME $DIR
+
+  return $?
 }
 
 # Builds an image if not exists and then create a new container or starts
@@ -55,7 +54,9 @@ setup_dev_container ()
   local DIR=$3
   local IMAGE=$4
   local BUILD=$true
+
   local ARGS=""
+  local STATUS=0
 
   shift 4
 
@@ -69,29 +70,30 @@ setup_dev_container ()
 
   if ! (docker images | grep -q "^$NAME\s") && [[ -f $DIR/Dockerfile ]]; then
     docker_dev_container_rebuild $NAME $DIR
+    STATUS=$?
   fi
 
   if [[ $BUILD == $true ]]; then
     local CURRENT_ID=$(docker ps -a | grep "\s$NAME$" | awk '{print $1}')
     if [[ -z $CURRENT_ID ]]; then
-      echo_step "Running the fresh \"$NAME\" container"
-      exec_step docker run $ARGS \
+      verbose docker run $ARGS \
         --hostname="$HOSTNAME" \
         --name="$NAME" \
         -e "DEV_NAME=$NAME" \
         -e "DEV_HOSTNAME=$HOSTNAME" \
         $IMAGE
+
+      STATUS=0
     else
-      echo_step "Starting the \"$NAME\" container"
-      exec_step docker start $CURRENT_ID
+      docker start $CURRENT_ID > /dev/null
+      STATUS=0
     fi
 
     # Create empty file to mark this container as created by this script.
-    exec_cmd docker exec $NAME touch /etc/docker-dev-env
-
-  else
-    echo_step_info "The image \"$NAME\" is marked as not runnable"
+    docker exec $NAME touch /etc/docker-dev-env
   fi
+
+  return $STATUS
 }
 
 # Removes umtagged Docker images.
@@ -100,8 +102,6 @@ docker_remove_untagged_images ()
   IMAGES_TO_REMOVE=$(docker images --filter "dangling=true" -q --no-trunc)
 
   if [[ ! -z $IMAGES_TO_REMOVE ]]; then
-      echo_step "Removing untaged images"
-      exec_cmd docker rmi $IMAGES_TO_REMOVE
-      echo_step_result_ok
+    docker rmi $IMAGES_TO_REMOVE
   fi
 }

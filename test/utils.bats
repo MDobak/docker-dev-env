@@ -26,43 +26,6 @@ export PATH="$BATS_TEST_DIRNAME/stub:$PATH"
   assert_failure
 }
 
-@test "test exec_cmd without verbose" {
-  local VERBOSE=0
-
-  run exec_cmd echo "foobar"
-
-  assert_output ""
-}
-
-@test "test exec_cmd with verbose" {
-  local VERBOSE=1
-
-  run exec_cmd echo "foobar"
-
-  assert_output "Exec (user) $ echo foobar
-foobar"
-}
-
-@test "test exec_cmd without verbose and output redirection" {
-  local VERBOSE=0
-
-  exec_cmd "echo \"foobar1\" > $BATS_TEST_DIRNAME/tmp.txt"
-  run cat $BATS_TEST_DIRNAME/tmp.txt
-  rm $BATS_TEST_DIRNAME/tmp.txt
-
-  assert_output "foobar1"
-}
-
-@test "test exec_cmd with verbose and output redirection" {
-  local VERBOSE=1
-
-  exec_cmd "echo \"foobar2\" > $BATS_TEST_DIRNAME/tmp.txt"
-  run cat $BATS_TEST_DIRNAME/tmp.txt
-  rm $BATS_TEST_DIRNAME/tmp.txt
-
-  assert_output "foobar2"
-}
-
 @test "checks if Linux is supported" {
   stub is_mac "return -1"
   stub is_linux "return 0"

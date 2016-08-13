@@ -29,68 +29,90 @@ build_dnsmasq_config ()
   eval "$1=\$_HOSTS"
 }
 
+# Checks if Dnsmasq is installed on the host OS.
+is_dnsmasq_installed_on_host ()
+{
+  if ! command_exists dnsmasq && ! command_exists $(brew --prefix dnsmasq)/sbin/dnsmasq; then
+    return $false;
+  fi;
+
+  return $true;
+}
+
 # Sets configuration for the Dnsmasq from build_dnsmasq_config on a host OS.
 setup_host_dnsmasq ()
 {
-  if ! command_exists dnsmasq && ! command_exists $(brew --prefix dnsmasq)/sbin/dnsmasq; then
-    echo_step_skip "Configuring the Dnsmasq for the host OS (the Dnsmasq is not installed on the host OS!)"
-    return
-  fi;
+  if ! is_dnsmasq_installed_on_host; then
+    echo_log "The Dnsmasq is not installed on this machine."
+
+    return $true;
+  fi
 
   build_dnsmasq_config HOSTS
-
-  echo_step "Configuring the Dnsmasq for the host OS"
 
   if is_mac; then
     if command_exists $(brew --prefix dnsmasq)/sbin/dnsmasq; then
       local CONF_LINE="conf-file=$(brew --prefix)/etc/dnsmasq.d/docker-hosts.conf"
 
-      exec_cmd mkdir -p $(brew --prefix)/etc
-      exec_cmd mkdir -p $(brew --prefix)/etc/dnsmasq.d
+      if ! [[ -d $(brew --prefix)/etc/dnsmasq.d ]]; then
+          mkdir $(brew --prefix)/etc/dnsmasq.d
+          copy_permissions $(brew --prefix)/etc/dnsmasq.conf $(brew --prefix)/etc/dnsmasq.d
+      fi
 
       if ! [[ -f /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist ]]; then
-        exec_cmd cp -v $(brew --prefix dnsmasq)/homebrew.mxcl.dnsmasq.plist /Library/LaunchDaemons
+        cp -v $(brew --prefix dnsmasq)/homebrew.mxcl.dnsmasq.plist /Library/LaunchDaemons
       fi
 
       if ! [[ -f $(brew --prefix)/etc/dnsmasq.conf ]]; then
-        exec_cmd cp $(brew --prefix dnsmasq)/dnsmasq.conf.example $(brew --prefix)/etc/dnsmasq.conf
+        cp $(brew --prefix dnsmasq)/dnsmasq.conf.example $(brew --prefix)/etc/dnsmasq.conf
       fi
 
       if ! fgrep -q "$CONF_LINE" "$(brew --prefix)/etc/dnsmasq.conf"; then
-          exec_cmd "echo $CONF_LINE >> $(brew --prefix)/etc/dnsmasq.conf"
+          echo $CONF_LINE >> $(brew --prefix)/etc/dnsmasq.conf
       fi
 
-      exec_cmd "printf \"$HOSTS\" > $(brew --prefix)/etc/dnsmasq.d/docker-hosts.conf"
-      sudo_wrapper "launchctl unload /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist"
-      sudo_wrapper "launchctl load /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist"
+      printf "$HOSTS" > $(brew --prefix)/etc/dnsmasq.d/docker-hosts.conf
+      copy_permissions $(brew --prefix)/etc/dnsmasq.conf $(brew --prefix)/etc/dnsmasq.d/docker-hosts.conf
+
+      launchctl unload /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist > /dev/null
+      launchctl load /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist > /dev/null
+
+      echo_log "The Dnsmasq installed via the Homebrew is configured for the Mac OS."
     elif [[ -f /Library/LaunchDaemons/org.macports.dnsmasq.plist ]]; then
       local CONF_LINE="conf-file=/opt/local/etc/dnsmasq.d/docker-hosts.conf"
 
-      sudo_wrapper "mkdir -p /opt/local/etc/dnsmasq.d"
-
-      if ! fgrep -q "$CONF_LINE" "/opt/local/etc/dnsmasq.conf"; then
-          exec_cmd "echo $CONF_LINE >> /opt/local/etc/dnsmasq.conf"
+      if ! [[ -d /opt/local/etc/dnsmasq.d ]]; then
+          mkdir /opt/local/etc/dnsmasq.d
+          copy_permissions /opt/local/etc /opt/local/etc/dnsmasq.d
       fi
 
-      sudo_wrapper "printf \"$HOSTS\" > /opt/local/etc/dnsmasq.d/docker-hosts.conf"
-      sudo_wrapper "launchctl unload /Library/LaunchDaemons/org.macports.dnsmasq.plist"
-      sudo_wrapper "launchctl load /Library/LaunchDaemons/org.macports.dnsmasq.plist"
+      if ! fgrep -q "$CONF_LINE" "/opt/local/etc/dnsmasq.conf"; then
+          echo $CONF_LINE >> /opt/local/etc/dnsmasq.conf
+      fi
+
+      printf "$HOSTS" > /opt/local/etc/dnsmasq.d/docker-hosts.conf
+      launchctl unload /Library/LaunchDaemons/org.macports.dnsmasq.plist > /dev/null
+      launchctl load /Library/LaunchDaemons/org.macports.dnsmasq.plist > /dev/null
+
+      echo_log "The Dnsmasq installed via the MacPorts is configured for the Mac OS."
     fi
 
-    dscacheutil -flushcache
-    sudo_wrapper "killall -HUP mDNSResponder"
+    dscacheutil -flushcache > /dev/null
+    killall -HUP mDNSResponder > /dev/null
   elif is_linux; then
     local CONF_LINE="conf-file=/etc/dnsmasq.d/docker-hosts.conf"
 
     if ! fgrep -q "$CONF_LINE" "/etc/dnsmasq.conf"; then
-        exec_cmd "echo $CONF_LINE >> /etc/dnsmasq.conf"
+        echo $CONF_LINE >> /etc/dnsmasq.conf
     fi
 
-    sudo_wrapper "printf \"$HOSTS\" > /etc/dnsmasq.d/docker-hosts.conf"
-    sudo_wrapper "service dnsmasq restart"
+    printf "$HOSTS" | tee /etc/dnsmasq.d/docker-hosts.conf
+    service dnsmasq restart > /dev/null
+
+    echo_log "The Dnsmasq is configured for the Linux OS."
   fi
 
-  echo_step_result_ok
+  return $true
 }
 
 # Sets a configuration for the Dnsmasq from the build_dnsmasq_config function
@@ -108,12 +130,8 @@ setup_containers_dnsmasq ()
       continue;
     fi
 
-    local CONTAINER_CMD="test -d /etc/dnsmasq.d && printf '$HOSTS' >> /etc/dnsmasq.d/docker-hosts.conf"
-    local DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
-
-    echo_step "Configuring the Dnsmasq for the \"$VM\" container"
-    eval "docker exec $VM $DOCKER_CMD"
-    echo_step_result_ok
+    docker exec $VM /bin/sh -c \
+      "test -d /etc/dnsmasq.d && printf '$HOSTS' | tee /etc/dnsmasq.d/docker-hosts.conf" > /dev/null
   done
 }
 
@@ -122,17 +140,14 @@ setup_dnsmasq_config ()
 {
   build_dnsmasq_config HOSTS
 
-  local CONTAINER_CMD="test -d /etc/dnsmasq.d && printf '$HOSTS' >> /etc/dnsmasq.d/docker-hosts.conf"
-  local DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
+  docker exec dnsmasq-server /bin/sh -c \
+    "grep -q '^conf-dir=/etc/dnsmasq.d$' /etc/dnsmasq.conf || echo 'conf-dir=/etc/dnsmasq.d' > /etc/dnsmasq.conf"
 
-  echo_step "Configuring the dnsmasq-server"
-  exec_cmd docker exec dnsmasq-server /bin/sh -c \
-    "grep -q \"^conf-dir=/etc/dnsmasq.d$\" /etc/dnsmasq.conf || echo \"conf-dir=/etc/dnsmasq.d\" > /etc/dnsmasq.conf"
-  exec_cmd docker exec dnsmasq-server mkdir -p /etc/dnsmasq.d
-  exec_cmd docker stop dnsmasq-server
-  exec_cmd docker start dnsmasq-server
-  eval "docker exec dnsmasq-server $DOCKER_CMD"
-  echo_step_result_ok
+  docker exec dnsmasq-server mkdir -p /etc/dnsmasq.d
+  docker restart dnsmasq-server > /dev/null
+
+  docker exec dnsmasq-server /bin/sh -c \
+    "test -d /etc/dnsmasq.d && printf '$HOSTS' | tee /etc/dnsmasq.d/docker-hosts.conf" > /dev/null
 }
 
 # Changes a DNS IP in /etc/resolv.conf in all containers to a dnsmasq-server
@@ -153,11 +168,7 @@ setup_dnsmasq_resolv ()
       continue
     fi
 
-    local CONTAINER_CMD="printf 'nameserver $DNSMASQ_IP' > /etc/resolv.conf"
-    local DOCKER_CMD="/bin/sh -c \"$CONTAINER_CMD\""
-
-    echo_step "Configuring the /etc/resolv.conf file for the \"$VM\" container"
-    exec_cmd eval "docker exec $VM $DOCKER_CMD"
-    echo_step_result_ok
+    echo_log "Configuring the /etc/resolv.conf file for the \"$VM\" container"
+    docker exec $VM /bin/sh -c "printf 'nameserver $DNSMASQ_IP' | tee /etc/resolv.conf" > /dev/null
   done
 }

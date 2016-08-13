@@ -7,6 +7,7 @@
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 IMAGES_TO_RUN="images/dnsmasq-server"
 
+. $BASE_DIR/../src/trap.sh
 . $BASE_DIR/../src/util.sh
 . $BASE_DIR/../src/vbox.sh
 . $BASE_DIR/../src/dnsmasq.sh
@@ -82,8 +83,10 @@ parse_args ()
 
     if [[ $ARG == "-v" || $ARG == "--verbose" ]]; then
       VERBOSE=1
+    elif [[ $ARG == "-x" || $ARG == "--debug" ]]; then
+      set -x
     elif [[ $ARG == "-h" || $ARG == "--help" ]]; then
-        SHOW_HELP=$true
+      SHOW_HELP=$true
     elif [[ $ARG == "-m" || $ARG == "--mount-dir" ]]; then
       shift
       MOUNT_DIR=$1
@@ -143,7 +146,7 @@ setup_mount_dir ()
   mkdir -p $_MOUNT_DIR
   eval "$1=$_MOUNT_DIR"
 
-  echo_step_info "The Docker volumes will be mounted in $_MOUNT_DIR"
+  echo_log "The Docker volumes will be mounted in $_MOUNT_DIR"
 }
 
 # Runs image.sh scripts stored in an image directory which builds or starts
@@ -186,7 +189,7 @@ build_images ()
     fi
   done
 
-  echo_step_info "Images to build: ${IMAGES_TO_RUN:0:${#IMAGES_TO_RUN}-2}"
+  echo_log "Images to build: ${IMAGES_TO_RUN:0:${#IMAGES_TO_RUN}-2}"
 
   for IMAGE_DIR in $IMAGES_TO_RUN; do
     local DIR=$IMAGE_DIR
@@ -207,7 +210,8 @@ build_images ()
       HOSTNAME=$NAME
     fi
 
-    setup_dev_container $NAME $HOSTNAME "$DIR" $IMAGE $ARGS
+    echo_step "Starting the \"$NAME\" container"
+    exec_step setup_dev_container $NAME $HOSTNAME "$DIR" $IMAGE $ARGS
   done
 }
 
@@ -218,46 +222,64 @@ if [[ $SHOW_HELP == $true ]]; then
   show_help
 fi
 
-sudo_prompt
 check_os_support
 check_requirements
+check_root
+
+if is_mac; then
+    check_sudo
+fi
+
 setup_mount_dir MOUNT_DIR
 
 if is_mac; then
-  start_docker_machine $DOCKER_MACHINE_NAME
-  regenerate_docker_machine_certs $DOCKER_MACHINE_NAME
+  echo_step "Regenerating the Docker Machine certificates"
+  exec_step regenerate_docker_machine_certs $DOCKER_MACHINE_NAME
 fi
 
 if is_mac && [[ $SETUP_VBOX_NETWORK == $true ]]; then
-  setup_vbox_network $DOCKER_MACHINE_NAME
-  setup_vbox_gw $DOCKER_MACHINE_NAME
+  echo_step "Adding a bridged network card to the VirtualBox"
+  exec_step setup_vbox_network $DOCKER_MACHINE_NAME
+
+  echo_step "Adding a gateway rule for the Docker Machine"
+  exec_step setup_vbox_gw $DOCKER_MACHINE_NAME
 fi
 
 if is_mac && [[ $SETUP_VBOX_NFS_SHARING == $true ]]; then
-  setup_macos_nfsd $DOCKER_MACHINE_NAME $MOUNT_DIR
-  setup_docker_machine_nfs_mount $DOCKER_MACHINE_NAME $MOUNT_DIR
+  echo_step "Configuring NFS sharing on the host OS"
+  exec_step setup_macos_nfsd $DOCKER_MACHINE_NAME $MOUNT_DIR
+
+  echo_step "Configuring NFS sharing on the Docker Machine"
+  exec_step setup_docker_machine_nfs_mount $DOCKER_MACHINE_NAME $MOUNT_DIR
 fi
 
 build_images $MOUNT_DIR $@
 
 if [[ $SETUP_CONTAINERS_DNSMASQ == $true ]]; then
-  setup_containers_dnsmasq $SETUP_ONLY_DEV_ENV_CONTAINERS
+  echo_step "Configuring the Dnsmasq in containers"
+  exec_step setup_containers_dnsmasq $SETUP_ONLY_DEV_ENV_CONTAINERS
 fi
 
 if [[ $SETUP_CONTAINERS_HOSTS == $true ]]; then
-  setup_containers_host_files $SETUP_ONLY_DEV_ENV_CONTAINERS
+  echo_step "Configuring the /etc/hosts file in containers"
+  exec_step setup_containers_host_files $SETUP_ONLY_DEV_ENV_CONTAINERS
 fi
 
 if [[ $SETUP_HOST_DNSMASQ == $true ]]; then
-  setup_host_dnsmasq
+  echo_step "Configuring the Dnsmasq on the host OS"
+  exec_step setup_host_dnsmasq
 fi
 
 if [[ $SETUP_HOST_HOSTS == $true ]]; then
-  setup_host_file
+  echo_step "Configuring the /etc/hosts file on the host OS"
+  exec_step setup_host_file
 fi
 
-setup_dnsmasq_config
-setup_dnsmasq_resolv $SETUP_ONLY_DEV_ENV_CONTAINERS
+echo_step "Configuring the dnsmasq-server"
+exec_step setup_dnsmasq_config
+
+echo_step "Configuring the /etc/resolv.conf file in containers"
+exec_step setup_dnsmasq_resolv $SETUP_ONLY_DEV_ENV_CONTAINERS
 
 docker_remove_untagged_images
 
