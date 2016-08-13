@@ -4,10 +4,11 @@
 # Copyright © 2016 Michał Dobaczewski <mdobak@gmail.com>
 #
 
+set -e
+
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 IMAGES_TO_RUN="images/dnsmasq-server"
 
-. $BASE_DIR/../src/trap.sh
 . $BASE_DIR/../src/util.sh
 . $BASE_DIR/../src/vbox.sh
 . $BASE_DIR/../src/dnsmasq.sh
@@ -231,6 +232,11 @@ if is_mac; then
 fi
 
 setup_mount_dir MOUNT_DIR
+
+if is_mac && ! is_docker_machine_exists $DOCKER_MACHINE_NAME; then
+  echo_step "Creating the Docker Machine"
+  exec_step create_docker_machine $DOCKER_MACHINE_NAME
+fi
 
 if is_mac; then
   echo_step "Regenerating the Docker Machine certificates"

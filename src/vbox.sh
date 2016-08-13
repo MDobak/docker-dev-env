@@ -12,7 +12,7 @@ _VBOX_SH=1
 is_docker_machine_running ()
 {
   local DOCKER_MACHINE_NAME=$1
-  local STATUS=$(su -l $SUDO_USER -c "docker-machine status $DOCKER_MACHINE_NAME")
+  local STATUS=$(run_as_user docker-machine status $DOCKER_MACHINE_NAME)
 
   if [[ $STATUS == "Running" ]]; then
     return $true
@@ -21,16 +21,40 @@ is_docker_machine_running ()
   fi
 }
 
+# Checks if the Docker Machine exists
+#
+# $1 - The Docker Machie name.
+is_docker_machine_exists ()
+{
+  local DOCKER_MACHINE_NAME=$1
+
+  if run_as_user docker-machine ls -q | fgrep -q $DOCKER_MACHINE_NAME; then
+    return $true;
+  else
+    return $false;
+  fi
+}
+
+# Creates the Docker Machine.
+#
+# $1 - The Docker Machie name.
+create_docker_machine ()
+{
+  local DOCKER_MACHINE_NAME=$1
+
+  if is_mac && ! is_docker_machine_exists $DOCKER_MACHINE_NAME; then
+    verbose run_as_user docker-machine create -d virtualbox $DOCKER_MACHINE_NAME
+  fi
+
+  eval "$(run_as_user docker-machine env $DOCKER_MACHINE_NAME)"
+}
+
 # Starts the Docker Machine.
 #
 # $1 - The Docker Machie name.
 start_docker_machine ()
 {
   local DOCKER_MACHINE_NAME=$1
-
-  if is_mac && ! su -l $SUDO_USER -c "docker-machine ls -q | fgrep -q $DOCKER_MACHINE_NAME"; then
-    run_as_user docker-machine create -d virtualbox $DOCKER_MACHINE_NAME
-  fi
 
   if ! is_docker_machine_running $DOCKER_MACHINE_NAME; then
     echo_log "Starting the Docker Machine"
@@ -121,7 +145,7 @@ setup_vbox_gw ()
   start_docker_machine $DOCKER_MACHINE_NAME
 
   if ! netstat -rn | grep -q "^172.17/24\s*$(run_as_user docker-machine ip $DOCKER_MACHINE_NAME)"; then
-    route -n delete 172.17.0.0/24
-    route add 172.17.0.0/24 $(run_as_user docker-machine ip $DOCKER_MACHINE_NAME)
+    route -n delete 172.17.0.0/24 > /dev/null
+    route add 172.17.0.0/24 $(run_as_user docker-machine ip $DOCKER_MACHINE_NAME) > /dev/null
   fi
 }
