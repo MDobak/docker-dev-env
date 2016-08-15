@@ -45,6 +45,7 @@ show_help ()
   echo '-m, --mount-dir <dir>              The directory where a NFS folder will be mount.'
   echo '-d, --docker-machine <name>        Name of the Docker Machine. Default value: "default"'
   echo '--dev-env-only <flag>              Prevents any actions on containers not created by this script. Enabled by default.'
+  echo '--debug                            Debug mode.'
 
   if is_mac; then
     echo '--setup-vbox-net <flag>            Configure the VirtualBox bridged network. Enabled by default.'
@@ -84,7 +85,7 @@ parse_args ()
 
     if [[ $ARG == "-v" || $ARG == "--verbose" ]]; then
       VERBOSE=1
-    elif [[ $ARG == "-x" || $ARG == "--debug" ]]; then
+    elif [[ $ARG == "--debug" ]]; then
       set -x
     elif [[ $ARG == "-h" || $ARG == "--help" ]]; then
       SHOW_HELP=$true
@@ -228,7 +229,7 @@ check_requirements
 check_root
 
 if is_mac; then
-    check_sudo
+  check_sudo
 fi
 
 setup_mount_dir MOUNT_DIR

@@ -43,19 +43,19 @@ check_requirements ()
 # Checks if script is being run by root.
 check_root ()
 {
-    if [[ $EUID -ne 0 ]]; then
-        echo_fatal "This script must be run as root!" 1>&2
-        exit 1
-    fi
+  if [[ $EUID -ne 0 ]]; then
+    echo_fatal "This script must be run as root!" 1>&2
+    exit 1
+  fi
 }
 
 # Check if script is being run using sudo command.
 check_sudo ()
 {
-    if [[ -z $SUDO_USER ]] && [[ $SUDO_USER != "roor" ]]; then
-        echo_fatal "This script must be run using sudo as non root user!" 1>&2
-        exit 1
-    fi
+  if [[ -z $SUDO_USER ]] && [[ $SUDO_USER != "roor" ]]; then
+    echo_fatal "This script must be run using sudo as non root user!" 1>&2
+    exit 1
+  fi
 }
 
 # Prints an error messages.
