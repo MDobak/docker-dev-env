@@ -95,8 +95,11 @@ echo_log ()
 # Prints a fatal error message and interrupts the script execution.
 #
 # $1 - A success message.
+# $2 - Exit immediately ($true or $false, by default $true)
 echo_fatal ()
 {
+  local EXIT_IMMEDIATLY=$2
+
   echo
   echo_error  "--------------------------------------------------------------------------------"
   echo_error "  Script failed!                                                              "
@@ -104,7 +107,9 @@ echo_fatal ()
   echo_error  "--------------------------------------------------------------------------------"
   echo
 
-  exit -1;
+  if [[ -z "$EXIT_IMMEDIATLY" ]] || [[ "$EXIT_IMMEDIATLY" == "$true" ]]; then
+    exit -1;
+  fi
 }
 
 # Prints current step message. After this function you must use one

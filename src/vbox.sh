@@ -43,7 +43,7 @@ create_docker_machine ()
   local DOCKER_MACHINE_NAME=$1
 
   if is_mac && ! is_docker_machine_exists $DOCKER_MACHINE_NAME; then
-    verbose run_as_user docker-machine create -d virtualbox $DOCKER_MACHINE_NAME
+    err_catch verbose run_as_user docker-machine create -d virtualbox $DOCKER_MACHINE_NAME
   fi
 
   eval "$(run_as_user docker-machine env $DOCKER_MACHINE_NAME)"
@@ -115,7 +115,7 @@ vbox_host_ip ()
   local DOCKER_MACHINE_NAME=$1
   local NETNAME=$(run_as_user VBoxManage showvminfo $DOCKER_MACHINE_NAME --machinereadable | grep hostonlyadapter | cut -d = -f 2 | xargs)
 
-  run_as_user VBoxManage list hostonlyifs | grep $NETNAME -A 3 | grep IPAddress | cut -d ':' -f 2 | xargs;
+  err_catch run_as_user VBoxManage list hostonlyifs | grep $NETNAME -A 3 | grep IPAddress | cut -d ':' -f 2 | xargs;
 }
 
 # Adds a bridged interface at NIC3 to the Docker Machine.
@@ -125,12 +125,12 @@ setup_vbox_network ()
 {
   local DOCKER_MACHINE_NAME=$1
 
-  if ! run_as_user VBoxManage showvminfo $DOCKER_MACHINE_NAME | grep -q "NIC 3:.*Bridged Interface"; then
+  if ! err_catch run_as_user VBoxManage showvminfo $DOCKER_MACHINE_NAME | grep -q "NIC 3:.*Bridged Interface"; then
     if is_docker_machine_running $DOCKER_MACHINE_NAME; then
       stop_docker_machine $DOCKER_MACHINE_NAME
     fi
 
-    run_as_user VBoxManage modifyvm $DOCKER_MACHINE_NAME --nic3 bridged --bridgeadapter3 en0 --nictype3 82540EM
+    err_catch run_as_user VBoxManage modifyvm $DOCKER_MACHINE_NAME --nic3 bridged --bridgeadapter3 en0 --nictype3 82540EM
   fi
 }
 
@@ -145,7 +145,7 @@ setup_vbox_gw ()
   start_docker_machine $DOCKER_MACHINE_NAME
 
   if ! netstat -rn | grep -q "^172.17/24\s*$(run_as_user docker-machine ip $DOCKER_MACHINE_NAME)"; then
-    route -n delete 172.17.0.0/24 > /dev/null
-    route add 172.17.0.0/24 $(run_as_user docker-machine ip $DOCKER_MACHINE_NAME) > /dev/null
+    err_catch route -n delete 172.17.0.0/24 > /dev/null
+    err_catch route add 172.17.0.0/24 $(run_as_user docker-machine ip $DOCKER_MACHINE_NAME) > /dev/null
   fi
 }

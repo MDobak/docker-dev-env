@@ -10,6 +10,7 @@ BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 IMAGES_TO_RUN="images/dnsmasq-server"
 
 . $BASE_DIR/../src/util.sh
+. $BASE_DIR/../src/err.sh
 . $BASE_DIR/../src/vbox.sh
 . $BASE_DIR/../src/dnsmasq.sh
 . $BASE_DIR/../src/hosts.sh

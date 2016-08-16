@@ -35,7 +35,7 @@ docker_dev_container_rebuild ()
     docker rmi -f $NAME > /dev/null
   fi
 
-  verbose docker build -t $NAME $DIR
+  err_catch verbose docker build -t $NAME $DIR
 
   return $?
 }
