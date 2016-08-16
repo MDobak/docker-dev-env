@@ -9,7 +9,7 @@ _DOCKER_SH=1
 # Checks if a container is created by this scrpt.
 #
 # $1 - A container name.
-is_dev_env_container ()
+docker_is_dev_env_container ()
 {
   docker exec $1 test -f /etc/docker-dev-env
 
@@ -47,7 +47,7 @@ docker_dev_container_rebuild ()
 # $2 - Hostname.
 # $3 - A Dockerfile directory.
 # $4 - Image name to build if container does not exists.
-setup_dev_container ()
+docker_setup_dev_container ()
 {
   local NAME=$1
   local HOSTNAME=$2

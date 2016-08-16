@@ -11,7 +11,7 @@ IMAGES_TO_RUN="images/dnsmasq-server"
 
 . $BASE_DIR/../src/util.sh
 . $BASE_DIR/../src/err.sh
-. $BASE_DIR/../src/vbox.sh
+. $BASE_DIR/../src/dm.sh
 . $BASE_DIR/../src/dnsmasq.sh
 . $BASE_DIR/../src/hosts.sh
 . $BASE_DIR/../src/docker.sh
@@ -214,7 +214,7 @@ build_images ()
     fi
 
     echo_step "Starting the \"$NAME\" container"
-    exec_step setup_dev_container $NAME $HOSTNAME "$DIR" $IMAGE $ARGS
+    exec_step docker_setup_dev_container $NAME $HOSTNAME "$DIR" $IMAGE $ARGS
   done
 }
 
@@ -235,59 +235,59 @@ fi
 
 setup_mount_dir MOUNT_DIR
 
-if is_mac && ! is_docker_machine_exists $DOCKER_MACHINE_NAME; then
+if is_mac && ! dm_is_exists $DOCKER_MACHINE_NAME; then
   echo_step "Creating the Docker Machine"
-  exec_step create_docker_machine $DOCKER_MACHINE_NAME
+  exec_step dm_create $DOCKER_MACHINE_NAME
 fi
 
 if is_mac; then
   echo_step "Regenerating the Docker Machine certificates"
-  exec_step regenerate_docker_machine_certs $DOCKER_MACHINE_NAME
+  exec_step dm_regenerate_certs $DOCKER_MACHINE_NAME
 fi
 
 if is_mac && [[ $SETUP_VBOX_NETWORK == $true ]]; then
   echo_step "Adding a bridged network card to the VirtualBox"
-  exec_step setup_vbox_network $DOCKER_MACHINE_NAME
+  exec_step dm_setup_vbox_network $DOCKER_MACHINE_NAME
 
   echo_step "Adding a gateway rule for the Docker Machine"
-  exec_step setup_vbox_gw $DOCKER_MACHINE_NAME
+  exec_step dm_setup_vbox_gw $DOCKER_MACHINE_NAME
 fi
 
 if is_mac && [[ $SETUP_VBOX_NFS_SHARING == $true ]]; then
   echo_step "Configuring NFS sharing on the host OS"
-  exec_step setup_macos_nfsd $DOCKER_MACHINE_NAME $MOUNT_DIR
+  exec_step nfs_setup_nfsd_on_host $DOCKER_MACHINE_NAME $MOUNT_DIR
 
   echo_step "Configuring NFS sharing on the Docker Machine"
-  exec_step setup_docker_machine_nfs_mount $DOCKER_MACHINE_NAME $MOUNT_DIR
+  exec_step nfs_setup_on_docker_machine $DOCKER_MACHINE_NAME $MOUNT_DIR
 fi
 
 build_images $MOUNT_DIR $@
 
 if [[ $SETUP_CONTAINERS_DNSMASQ == $true ]]; then
   echo_step "Configuring the Dnsmasq in containers"
-  exec_step setup_containers_dnsmasq $SETUP_ONLY_DEV_ENV_CONTAINERS
+  exec_step dnsmasq_setup_containers $SETUP_ONLY_DEV_ENV_CONTAINERS
 fi
 
 if [[ $SETUP_CONTAINERS_HOSTS == $true ]]; then
   echo_step "Configuring the /etc/hosts file in containers"
-  exec_step setup_containers_host_files $SETUP_ONLY_DEV_ENV_CONTAINERS
+  exec_step hosts_setup_on_containers $SETUP_ONLY_DEV_ENV_CONTAINERS
 fi
 
 if [[ $SETUP_HOST_DNSMASQ == $true ]]; then
   echo_step "Configuring the Dnsmasq on the host OS"
-  exec_step setup_host_dnsmasq
+  exec_step dnsmasq_setup_host
 fi
 
 if [[ $SETUP_HOST_HOSTS == $true ]]; then
   echo_step "Configuring the /etc/hosts file on the host OS"
-  exec_step setup_host_file
+  exec_step hosts_setup_on_host
 fi
 
 echo_step "Configuring the dnsmasq-server"
-exec_step setup_dnsmasq_config
+exec_step dnsmasq_setup_server
 
 echo_step "Configuring the /etc/resolv.conf file in containers"
-exec_step setup_dnsmasq_resolv $SETUP_ONLY_DEV_ENV_CONTAINERS
+exec_step dnsmasq_setup_containers_resolv $SETUP_ONLY_DEV_ENV_CONTAINERS
 
 docker_remove_untagged_images
 

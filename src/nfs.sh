@@ -13,11 +13,11 @@ _NFS_SH=1
 #
 # $1 - The Docker Machie name.
 # $2 - Path to the mount directory to check.
-is_nfs_mounted ()
+nfs_is_mounted ()
 {
   local DOCKER_MACHINE_NAME=$1
   local MOUNT_DIR=$2
-  local HOST_IP=$(vbox_host_ip $DOCKER_MACHINE_NAME)
+  local HOST_IP=$(dm_host_ip $DOCKER_MACHINE_NAME)
 
   if run_as_user docker-machine ssh $DOCKER_MACHINE_NAME sudo df | grep -q "$HOST_IP:$MOUNT_DIR"; then
     return $true
@@ -31,7 +31,7 @@ is_nfs_mounted ()
 # $1 - The Docker Machie name.
 # $2 - Path to the mount directory.
 # $3 - NFS exports options for specifed directory. By default "-alldirs -maproot=0".
-setup_macos_nfsd ()
+nfs_setup_nfsd_on_host ()
 {
   local DOCKER_MACHINE_NAME=$1
   local MOUNT_DIR=$2
@@ -54,12 +54,12 @@ setup_macos_nfsd ()
 # $1 - The Docker Machie name.
 # $2 - Path to the mount directory.
 # $3 - Mount opitions on the Docker Machine. By default "moacl,async".
-setup_docker_machine_nfs_mount ()
+nfs_setup_on_docker_machine ()
 {
   local DOCKER_MACHINE_NAME=$1
   local MOUNT_DIR=$2
   local MOUNT_OPTIONS=$3;
-  local HOST_IP=$(vbox_host_ip $DOCKER_MACHINE_NAME)
+  local HOST_IP=$(dm_host_ip $DOCKER_MACHINE_NAME)
 
   if [[ -z $MOUNT_OPTIONS ]]; then
     MOUNT_OPTIONS="nolock,noacl,async"
@@ -75,11 +75,11 @@ sudo mount -t nfs -o '$MOUNT_OPTIONS' '$HOST_IP':'$MOUNT_DIR' '$MOUNT_DIR
     "echo '$BOOTLOCAL_FILE' | sudo tee /var/lib/boot2docker/bootlocal.sh && sudo chmod +x /var/lib/boot2docker/bootlocal.sh" \
     > /dev/null
 
-  if ! is_nfs_mounted $DOCKER_MACHINE_NAME $MOUNT_DIR; then
-    restart_docker_machine $DOCKER_MACHINE_NAME
+  if ! nfs_is_mounted $DOCKER_MACHINE_NAME $MOUNT_DIR; then
+    dm_restart $DOCKER_MACHINE_NAME
   fi
 
-  if ! is_nfs_mounted $DOCKER_MACHINE_NAME $MOUNT_DIR; then
+  if ! nfs_is_mounted $DOCKER_MACHINE_NAME $MOUNT_DIR; then
     return $false
   fi
 

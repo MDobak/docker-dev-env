@@ -4,12 +4,12 @@
 # Copyright © 2016 Michał Dobaczewski <mdobak@gmail.com>
 #
 
-_VBOX_SH=1
+_DM_SH=1
 
 # Checks if the Docker Macine is running.
 #
 # $1 - The Docker Machie name.
-is_docker_machine_running ()
+dm_is_running ()
 {
   local DOCKER_MACHINE_NAME=$1
   local STATUS=$(run_as_user docker-machine status $DOCKER_MACHINE_NAME)
@@ -24,7 +24,7 @@ is_docker_machine_running ()
 # Checks if the Docker Machine exists
 #
 # $1 - The Docker Machie name.
-is_docker_machine_exists ()
+dm_is_exists ()
 {
   local DOCKER_MACHINE_NAME=$1
 
@@ -38,11 +38,11 @@ is_docker_machine_exists ()
 # Creates the Docker Machine.
 #
 # $1 - The Docker Machie name.
-create_docker_machine ()
+dm_create ()
 {
   local DOCKER_MACHINE_NAME=$1
 
-  if is_mac && ! is_docker_machine_exists $DOCKER_MACHINE_NAME; then
+  if is_mac && ! dm_is_exists $DOCKER_MACHINE_NAME; then
     err_catch verbose run_as_user docker-machine create -d virtualbox $DOCKER_MACHINE_NAME
   fi
 
@@ -52,11 +52,11 @@ create_docker_machine ()
 # Starts the Docker Machine.
 #
 # $1 - The Docker Machie name.
-start_docker_machine ()
+dm_start ()
 {
   local DOCKER_MACHINE_NAME=$1
 
-  if ! is_docker_machine_running $DOCKER_MACHINE_NAME; then
+  if ! dm_is_running $DOCKER_MACHINE_NAME; then
     echo_log "Starting the Docker Machine"
     run_as_user docker-machine start $DOCKER_MACHINE_NAME > /dev/null
   fi
@@ -67,11 +67,11 @@ start_docker_machine ()
 # Stops the Docker Machine.
 #
 # $1 - The Docker Machie name.
-stop_docker_machine ()
+dm_stop ()
 {
   local DOCKER_MACHINE_NAME=$1
 
-  if is_docker_machine_running $DOCKER_MACHINE_NAME; then
+  if dm_is_running $DOCKER_MACHINE_NAME; then
     echo_log "Stopping the Docker Machine"
     run_as_user docker-machine stop $DOCKER_MACHINE_NAME > /dev/null
   fi
@@ -80,11 +80,11 @@ stop_docker_machine ()
 # Restarts the Docker Machine.
 #
 # $1 - The Docker Machie name.
-restart_docker_machine ()
+dm_restart ()
 {
   local DOCKER_MACHINE_NAME=$1
 
-  if is_docker_machine_running $DOCKER_MACHINE_NAME; then
+  if dm_is_running $DOCKER_MACHINE_NAME; then
     echo_log "Restarting the Docker Machine"
     run_as_user docker-machine restart $DOCKER_MACHINE_NAME > /dev/null
     eval "$(run_as_user docker-machine env $DOCKER_MACHINE_NAME)"
@@ -94,11 +94,11 @@ restart_docker_machine ()
 # Regenerates The Docker Machine certificates if needed.
 #
 # $1 - The Docker Machie name.
-regenerate_docker_machine_certs ()
+dm_regenerate_certs ()
 {
   local DOCKER_MACHINE_NAME=$1
 
-  start_docker_machine $1
+  dm_start $1
 
   if run_as_user docker-machine env $DOCKER_MACHINE_NAME 2>&1 >/dev/null | grep -q "Error checking TLS connection" > /dev/null; then
     run_as_user docker-machine regenerate-certs -f $DOCKER_MACHINE_NAME > /dev/null
@@ -110,7 +110,7 @@ regenerate_docker_machine_certs ()
 # Prints host IP visible inside The Docker Machine.
 #
 # $1 - The Docker Machie name.
-vbox_host_ip ()
+dm_host_ip ()
 {
   local DOCKER_MACHINE_NAME=$1
   local NETNAME=$(run_as_user VBoxManage showvminfo $DOCKER_MACHINE_NAME --machinereadable | grep hostonlyadapter | cut -d = -f 2 | xargs)
@@ -121,13 +121,13 @@ vbox_host_ip ()
 # Adds a bridged interface at NIC3 to the Docker Machine.
 #
 # $1 - The Docker Machie name.
-setup_vbox_network ()
+dm_setup_vbox_network ()
 {
   local DOCKER_MACHINE_NAME=$1
 
   if ! err_catch run_as_user VBoxManage showvminfo $DOCKER_MACHINE_NAME | grep -q "NIC 3:.*Bridged Interface"; then
-    if is_docker_machine_running $DOCKER_MACHINE_NAME; then
-      stop_docker_machine $DOCKER_MACHINE_NAME
+    if dm_is_running $DOCKER_MACHINE_NAME; then
+      dm_stop $DOCKER_MACHINE_NAME
     fi
 
     err_catch run_as_user VBoxManage modifyvm $DOCKER_MACHINE_NAME --nic3 bridged --bridgeadapter3 en0 --nictype3 82540EM
@@ -138,11 +138,11 @@ setup_vbox_network ()
 # from the host OS.
 #
 # $1 - The Docker Machie name.
-setup_vbox_gw ()
+dm_setup_vbox_gw ()
 {
   local DOCKER_MACHINE_NAME=$1
 
-  start_docker_machine $DOCKER_MACHINE_NAME
+  dm_start $DOCKER_MACHINE_NAME
 
   if ! netstat -rn | grep -q "^172.17/24\s*$(run_as_user docker-machine ip $DOCKER_MACHINE_NAME)"; then
     err_catch route -n delete 172.17.0.0/24 > /dev/null
