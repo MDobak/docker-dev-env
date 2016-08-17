@@ -12,7 +12,7 @@ CYELLOW=""
 CBLUE=""
 CLBLUE=""
 
-export PATH="$BATS_TEST_DIRNAME/stub:$PATH"
+export PATH="$BATS_TEST_DIRNAME/stub:$BATS_TEST_DIRNAME/tmpstub:$PATH"
 
 @test "checks if command exists" {
   run command_exists grep

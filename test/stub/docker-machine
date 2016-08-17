@@ -1,0 +1,71 @@
+#!/bin/bash
+
+CONTAINERS=("test_running" "test_not_running" "foo" "bar" "test")
+RUNNING=("test_running")
+
+contains_element ()
+{
+  local E
+  for E in "${@:2}"; do [[ "$E" == "$1" ]] && return 0; done
+  return 1
+}
+
+if [[ $1 == "env" ]]; then
+  exit 0
+fi
+
+if [[ $1 == "ls" ]] && [[ $2 == "-q" ]]; then
+  for E in "${CONTAINERS[@]}"; do echo $E; done
+
+  exit 0
+fi
+
+if [[ $1 == "status" ]] && contains_element $2 "${RUNNING[@]}"; then
+  echo "Running"
+
+  exit 0
+fi
+
+if [[ $1 == "status" ]] && contains_element $2 "${CONTAINERS[@]}" && ! contains_element $2 "${RUNNING[@]}"; then
+  echo "Stopped"
+
+  exit 0
+fi
+
+if [[ $1 == "start" ]] && ! contains_element $2 "${CONTAINERS[@]}"; then
+  echo 'Host does not exist: "blahblahblah"';
+  exit 1
+fi
+
+if [[ $1 == "start" ]] && contains_element $2 "${CONTAINERS[@]}"; then
+  exit 0
+fi
+
+if [[ $1 == "stop" ]] && ! contains_element $2 "${CONTAINERS[@]}"; then
+  echo 'Host does not exist: "blahblahblah"';
+  exit 1
+fi
+
+if [[ $1 == "stop" ]] && contains_element $2 "${CONTAINERS[@]}"; then
+  exit 0
+fi
+
+if [[ $1 == "restart" ]] && ! contains_element $2 "${CONTAINERS[@]}"; then
+  echo 'Host does not exist: "blahblahblah"';
+  exit 1
+fi
+
+if [[ $1 == "restart" ]] && contains_element $2 "${CONTAINERS[@]}"; then
+  exit 0
+fi
+
+if [[ $1 == "create" ]] && [[ $2 == "-d" ]] && [[ $3 == "virtualbox" ]] && [[ $4 == "test" ]]; then
+  echo 'Host already exist: "test"';
+  exit 0
+fi
+
+if [[ $1 == "create" ]] && [[ $2 == "-d" ]] && [[ $3 == "virtualbox" ]] && [[ $4 == "blahblahblah" ]]; then
+  exit 0
+fi
+
+exit 1

@@ -86,12 +86,12 @@ assert ()
 # https://github.com/sstephenson/bats/issues/38
 stub ()
 {
-  [ -d "$BATS_TEST_DIRNAME/stub" ] || mkdir "$BATS_TEST_DIRNAME/stub"
-  echo "$2" > "$BATS_TEST_DIRNAME/stub/$1"
-  chmod +x "$BATS_TEST_DIRNAME/stub/$1"
+  [ -d "$BATS_TEST_DIRNAME/tmpstub" ] || mkdir "$BATS_TEST_DIRNAME/tmpstub"
+  echo "$2" > "$BATS_TEST_DIRNAME/tmpstub/$1"
+  chmod +x "$BATS_TEST_DIRNAME/tmpstub/$1"
 }
 
 rm_stubs ()
 {
-  rm -rf "$BATS_TEST_DIRNAME/stub"
+  rm -rf "$BATS_TEST_DIRNAME/tmpstub"
 }

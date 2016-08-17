@@ -2,4 +2,4 @@ images/*
 !images/dnsmasq-server
 !images/example-mysql
 !images/example-php5
-test/stub
+test/tmpstub

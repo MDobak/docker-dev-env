@@ -1,0 +1,31 @@
+#!/bin/bash
+
+if [[ $1 == "showvminfo" ]] && [[ $2 == "test" ]] && [[ $3 == "--machinereadable" ]]; then
+echo 'sockSnd="64"
+sockRcv="64"
+tcpWndSnd="64"
+tcpWndRcv="64"
+Forwarding(0)="ssh,tcp,127.0.0.1,64075,,22"
+hostonlyadapter2="vboxnet0"
+macaddress2="080027897FC7"
+cableconnected2="on"
+nic2="hostonly"
+nictype2="82540EM"
+nicspeed2="0"'
+  exit 0
+fi
+
+if [[ $1 == "list" ]] && [[ $2 == "hostonlyifs" ]]; then
+echo 'Name:            vboxnet0
+GUID:            786f6276-656e-4074-8000-0a0027000000
+DHCP:            Disabled
+IPAddress:       192.168.99.1
+NetworkMask:     255.255.255.0
+IPV6Address:
+IPV6NetworkMaskPrefixLength: 0
+HardwareAddress: 0a:00:27:00:00:00
+MediumType:      Ethernet
+Status:          Up
+VBoxNetworkName: HostInterfaceNetworking-vboxnet0'
+  exit 0
+fi

@@ -56,9 +56,13 @@ dm_start ()
 {
   local DOCKER_MACHINE_NAME=$1
 
+  if ! dm_is_exists $DOCKER_MACHINE_NAME; then
+    return $false
+  fi
+
   if ! dm_is_running $DOCKER_MACHINE_NAME; then
     echo_log "Starting the Docker Machine"
-    run_as_user docker-machine start $DOCKER_MACHINE_NAME > /dev/null
+    run_as_user docker-machine start $DOCKER_MACHINE_NAME > /dev/null || return $false
   fi
 
   eval "$(run_as_user docker-machine env $DOCKER_MACHINE_NAME)"
@@ -71,9 +75,13 @@ dm_stop ()
 {
   local DOCKER_MACHINE_NAME=$1
 
+  if ! dm_is_exists $DOCKER_MACHINE_NAME; then
+    return $false
+  fi
+
   if dm_is_running $DOCKER_MACHINE_NAME; then
     echo_log "Stopping the Docker Machine"
-    run_as_user docker-machine stop $DOCKER_MACHINE_NAME > /dev/null
+    run_as_user docker-machine stop $DOCKER_MACHINE_NAME > /dev/null || return $false
   fi
 }
 
@@ -83,6 +91,10 @@ dm_stop ()
 dm_restart ()
 {
   local DOCKER_MACHINE_NAME=$1
+
+  if ! dm_is_exists $DOCKER_MACHINE_NAME; then
+    return $false
+  fi
 
   if dm_is_running $DOCKER_MACHINE_NAME; then
     echo_log "Restarting the Docker Machine"
