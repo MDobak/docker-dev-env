@@ -66,6 +66,9 @@ else
   echo "OK!"
 fi
 
+# Clean-up
+docker-machine rm integration-test -y || true
+
 echo
 echo "Test passed successfully!"
 echo
