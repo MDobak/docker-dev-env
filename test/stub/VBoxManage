@@ -1,4 +1,6 @@
 #!/bin/bash
+# The MIT License (MIT)
+# Copyright © 2016 Michał Dobaczewski <mdobak@gmail.com>
 
 if [[ $1 == "showvminfo" ]] && [[ $2 == "test" ]] && [[ $3 == "--machinereadable" ]]; then
 echo 'sockSnd="64"

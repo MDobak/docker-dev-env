@@ -1,4 +1,6 @@
 #!/bin/bash
+# The MIT License (MIT)
+# Copyright © 2016 Michał Dobaczewski <mdobak@gmail.com>
 
 CONTAINERS=("test_running" "test_not_running" "foo" "bar" "test")
 RUNNING=("test_running")
