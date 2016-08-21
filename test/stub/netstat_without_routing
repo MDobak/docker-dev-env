@@ -1,0 +1,32 @@
+#!/bin/bash
+# The MIT License (MIT)
+# Copyright © 2016 Michał Dobaczewski <mdobak@gmail.com>
+
+if [[ $1 == "-rn" ]]; then
+  echo "Routing tables
+
+Internet:
+Destination        Gateway            Flags        Refs      Use   Netif Expire
+default            192.168.0.1        UGSc          410        0     en0
+127                127.0.0.1          UCS             2     1488     lo0
+127.0.0.1          127.0.0.1          UH              6    95250     lo0
+127.0.0.11         127.0.0.1          UHWIi           1        4     lo0
+192.168.0          link#4             UCS             4        0     en0
+192.168.0.1/32     link#4             UCS             2        0     en0
+192.168.99         link#10            UC              4        0 vboxnet
+192.168.99.100     8:0:27:55:4a:3b    UHLWIi          1       13 vboxnet   1082
+192.168.99.255     link#10            UHLWbI          1       21 vboxnet
+255.255.255.255/32 link#4             UCS             2        0     en0
+255.255.255.255    link#4             UHLWbI          1        2     en0
+
+Internet6:
+Destination                             Gateway                         Flags         Netif Expire
+::1                                     ::1                             UHL             lo0
+fd00:aaaa:aaaa:123::/64                 link#4                          UC              en0
+fd00:aaaa:aaaa:123:bbbb:cccc:dddd:eeee  aa:bb:cc:dd:ee:ff               UHL             lo0
+fd00:aaaa:aaaa:123:bbbb:cccc:dddd:eeee  aa:bb:cc:dd:ee:ff               UHL             lo0"
+
+  exit 0
+fi
+
+exit -1

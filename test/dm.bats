@@ -109,3 +109,29 @@ export PATH="$BATS_TEST_DIRNAME/stub:$BATS_TEST_DIRNAME/tmpstub:$PATH"
 
   assert_output "192.168.99.1"
 }
+
+@test "setup routing table if not configured before" {
+  stub is_mac "return 0"
+  stub route "echo -e \"\$@\\n\" >> \"$BATS_TMPDIR/route_cmds\"";
+  stub netstat "netstat_without_routing \$@"
+
+  printf '' > $BATS_TMPDIR/route_cmds
+  run dm_setup_vbox_gw test
+
+  cat $BATS_TMPDIR/route_cmds | grep -q "add 172.17.0.0/24 192.168.99.100"
+
+  assert_success
+}
+
+@test "setup routing table if already configured" {
+  stub is_mac "return 0"
+  stub route "echo -e \"\$@\\n\" >> \"$BATS_TMPDIR/route_cmds\"";
+  stub netstat "netstat_with_routing \$@"
+
+  printf '' > $BATS_TMPDIR/route_cmds
+  run dm_setup_vbox_gw test
+
+  test -s $BATS_TMPDIR/route_cmds && exit -1
+
+  assert_success
+}

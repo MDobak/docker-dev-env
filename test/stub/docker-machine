@@ -12,6 +12,11 @@ contains_element ()
   return 1
 }
 
+if [[ $1 == "ip" ]]; then
+  echo "192.168.99.100"
+  exit 0
+fi
+
 if [[ $1 == "env" ]]; then
   exit 0
 fi

@@ -157,6 +157,7 @@ dm_setup_vbox_gw ()
   dm_start $DOCKER_MACHINE_NAME
 
   if ! netstat -rn | grep -q "^172.17/24\s*$(run_as_user docker-machine ip $DOCKER_MACHINE_NAME)"; then
+    echo $(netstat -rn)
     err_catch route -n delete 172.17.0.0/24 > /dev/null
     err_catch route add 172.17.0.0/24 $(run_as_user docker-machine ip $DOCKER_MACHINE_NAME) > /dev/null
   fi
