@@ -119,11 +119,34 @@ echo_fatal ()
 # $1 - Step message.
 echo_step ()
 {
+  _STEP=$true
+
   if [[ $VERBOSE == 0 ]]; then
     printf "$CRESET[    ] $CYELLOW$1$CRESET\r"
   else
     printf "$CYELLOW$1$CRESET\n"
   fi
+}
+
+# Should be used to execute step commands after a echo_step.
+# This function executes a step (using the exec_cmd function) and immediately
+# after it shows the step status using the echo_step_result_auto.
+#
+# $@ - A command to execute.
+exec_step ()
+{
+  local STATUS=0
+
+  "$@"
+  STATUS=$?
+
+  if [[ $true == $_STEP ]]; then
+    echo_step_result_auto
+  fi
+
+  _STEP=$false
+
+  return $?
 }
 
 # Prints the "OK" result for echo_step function.
@@ -161,22 +184,6 @@ echo_step_result_auto ()
 echo_step_skip ()
 {
   printf "$CLBLUE[SKIP] $CYELLOW$1$CRESET\n"
-}
-
-# Should be used to execute step commands after a echo_step.
-# This function executes a step (using the exec_cmd function) and immediately
-# after it shows the step status using the echo_step_result_auto.
-#
-# $@ - A command to execute.
-exec_step ()
-{
-  local STATUS=0
-
-  "$@"
-  STATUS=$?
-  echo_step_result_auto
-
-  return $?
 }
 
 # Execute the command given after that function. If a $VERBOSE variables is set
