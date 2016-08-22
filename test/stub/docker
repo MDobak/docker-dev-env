@@ -1,0 +1,131 @@
+#!/bin/bash
+# The MIT License (MIT)
+# Copyright © 2016 Michał Dobaczewski <mdobak@gmail.com>
+
+if [[ $1 == "ps" ]]; then
+  echo "CONTAINER ID        IMAGE                    COMMAND                  CREATED             STATUS              PORTS                    NAMES
+adb1c41f4d99        registry:2               \"/entrypoint.sh /etc/\"   21 hours ago        Up 21 hours         0.0.0.0:5000->5000/tcp   registry
+82e08e7fce54        example-mysql            \"docker-entrypoint.sh\"   10 weeks ago        Up 20 hours         0.0.0.0:3306->3306/tcp   example-mysql
+01522cab36e6        foobar1                  \"/var/init/init.sh\"      10 weeks ago        Up 20 hours         80/tcp                   foobar1
+1198b588cf5f        foobar2                  \"/var/init/init.sh\"      10 weeks ago        Up 20 hours         80/tcp                   foobar2
+31673f0c2485        andyshinn/dnsmasq:2.75   \"dnsmasq -k\"             10 weeks ago        Up 20 hours         53/tcp, 53/udp           dnsmasq-server"
+  exit 0
+fi
+
+if [[ $1 == "inspect" ]] && [[ $2 == "--format" ]] && [[ $3 == "{{ .NetworkSettings.IPAddress }}" ]]; then
+  if [[ $4 == "registry" ]]; then
+    echo "172.17.0.1"
+    exit 0
+  fi
+
+  if [[ $4 == "example-mysql" ]]; then
+    echo "172.17.0.2"
+    exit 0
+  fi
+
+  if [[ $4 == "foobar1" ]]; then
+    echo "172.17.0.3"
+    exit 0
+  fi
+
+  if [[ $4 == "foobar2" ]]; then
+    echo "172.17.0.4"
+    exit 0
+  fi
+
+  if [[ $4 == "dnsmasq-server" ]]; then
+    echo "172.17.0.5"
+    exit 0
+  fi
+
+  exit 1
+fi
+
+if [[ $1 == "inspect" ]] && [[ $2 == "--format" ]] && [[ $3 == "{{ .Config.Domainname }}" ]]; then
+  if [[ $4 == "registry" ]]; then
+    echo ""
+    exit 0
+  fi
+
+  if [[ $4 == "example-mysql" ]]; then
+    echo ""
+    exit 0
+  fi
+
+  if [[ $4 == "foobar1" ]]; then
+    echo ".local"
+    exit 0
+  fi
+
+  if [[ $4 == "foobar2" ]]; then
+    echo ".local"
+    exit 0
+  fi
+
+  if [[ $4 == "dnsmasq-server" ]]; then
+    echo ""
+    exit 0
+  fi
+
+  exit 1
+fi
+
+if [[ $1 == "inspect" ]] && [[ $2 == "--format" ]] && [[ $3 == "{{ .Config.Hostname }}" ]]; then
+  if [[ $4 == "registry" ]]; then
+    echo "registry"
+    exit 0
+  fi
+
+  if [[ $4 == "example-mysql" ]]; then
+    echo "example-mysql"
+    exit 0
+  fi
+
+  if [[ $4 == "foobar1" ]]; then
+    echo "foobar1"
+    exit 0
+  fi
+
+  if [[ $4 == "foobar2" ]]; then
+    echo "foobar2"
+    exit 0
+  fi
+
+  if [[ $4 == "dnsmasq-server" ]]; then
+    echo "dnsmasq-server"
+    exit 0
+  fi
+
+  exit 1
+fi
+
+if [[ $1 == "inspect" ]] && [[ $2 == "--format" ]] && [[ $3 == "{{ .Config.Hostname }}.{{ .Config.Domainname }}" ]]; then
+  if [[ $4 == "registry" ]]; then
+    echo "registry"
+    exit 0
+  fi
+
+  if [[ $4 == "example-mysql" ]]; then
+    echo "example-mysql"
+    exit 0
+  fi
+
+  if [[ $4 == "foobar1" ]]; then
+    echo "foobar1.local"
+    exit 0
+  fi
+
+  if [[ $4 == "foobar2" ]]; then
+    echo "foobar2.local"
+    exit 0
+  fi
+
+  if [[ $4 == "dnsmasq-server" ]]; then
+    echo "dnsmasq-server"
+    exit 0
+  fi
+
+  exit 1
+fi
+
+exit 1

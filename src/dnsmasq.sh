@@ -8,12 +8,8 @@ _DNSMASQ_SH=1
 
 # Builds the Dnsmasq configuration file. The configuration file will maps
 # Docker containers names to thiers IPs.
-#
-# $1 - A variable name to store output.
 dnsmasq_build_config ()
 {
-  local _HOSTS="";
-
   for VM in `docker ps|tail -n +2|awk '{print $NF}'`; do
     local IP=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' $VM);
 
@@ -26,7 +22,7 @@ dnsmasq_build_config ()
     _HOSTS="${_HOSTS}address=/$HOSTNAME/$IP\\n";
   done
 
-  eval "$1=\$_HOSTS"
+  echo $_HOSTS
 }
 
 # Checks if Dnsmasq is installed on the host OS.
@@ -48,7 +44,7 @@ dnsmasq_setup_host ()
     return $true;
   fi
 
-  dnsmasq_build_config HOSTS
+  local HOSTS=$(dnsmasq_build_config)
 
   if is_mac; then
     if command_exists $(brew --prefix dnsmasq)/sbin/dnsmasq; then
@@ -123,7 +119,7 @@ dnsmasq_setup_containers ()
 {
   local SETUP_ONLY_DEV_ENV_CONTAINERS=$1
 
-  dnsmasq_build_config HOSTS
+  local HOSTS=$(dnsmasq_build_config)
 
   for VM in `docker ps|tail -n +2|awk '{print $NF}'`; do
     if [[ $SETUP_ONLY_DEV_ENV_CONTAINERS == $true ]] && ! docker_is_dev_env_container $VM; then
@@ -138,7 +134,7 @@ dnsmasq_setup_containers ()
 # Sets a configuration for the Dnsmasq in a dnsmasq-server container.
 dnsmasq_setup_server ()
 {
-  dnsmasq_build_config HOSTS
+  local HOSTS=$(dnsmasq_build_config)
 
   docker exec dnsmasq-server /bin/sh -c \
     "grep -q '^conf-dir=/etc/dnsmasq.d$' /etc/dnsmasq.conf || echo 'conf-dir=/etc/dnsmasq.d' > /etc/dnsmasq.conf"
