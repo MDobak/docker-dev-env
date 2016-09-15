@@ -50,11 +50,11 @@ err_catch ()
 
   "$@" || STATUS=$? || true
 
-  if [[ $true == $_STEP ]]; then
-    echo_step_result_fail
-  fi
-
   if [[ $STATUS != 0 ]]; then
+    if [[ $true == $_STEP ]]; then
+      echo_step_result_fail
+    fi
+
     echo_fatal "Command \"$@\" failed with status $STATUS" $false
     err_trace
     exit -1
