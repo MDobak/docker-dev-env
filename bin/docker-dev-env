@@ -289,8 +289,6 @@ exec_step dnsmasq_setup_server
 echo_step "Configuring the /etc/resolv.conf file in containers"
 exec_step dnsmasq_setup_containers_resolv $SETUP_ONLY_DEV_ENV_CONTAINERS
 
-docker_remove_untagged_images
-
 echo
 echo_success "All done!"
 echo
